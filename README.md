@@ -32,9 +32,11 @@
 
 从 [Releases](https://github.com/yourusername/LanFlare/releases) 页面下载适合您系统的版本：
 
-- **Windows**: `LanFlare-Setup-1.0.0.exe` 或 `LanFlare-1.0.0-portable.exe`
-- **macOS**: `LanFlare-1.0.0.dmg`
-- **Linux**: `LanFlare-1.0.0.AppImage` 或 `lanflare_1.0.0_amd64.deb`
+- **Windows**: `LanFlare-1.0.0-Windows-x64-Setup.exe` 或 `LanFlare-1.0.0-Windows-x64-Portable.exe`
+- **macOS (Apple Silicon)**: `LanFlare-1.0.0-macOS-arm64.dmg`
+- **macOS (Intel)**: `LanFlare-1.0.0-macOS-x64.dmg`
+- **Linux x64**: `LanFlare-1.0.0-Linux-x64.AppImage` / `.deb` / `.rpm`
+- **Linux arm64**: `LanFlare-1.0.0-Linux-arm64.AppImage` / `.deb` / `.rpm`
 
 ### 使用
 

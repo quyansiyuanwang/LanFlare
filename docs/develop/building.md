@@ -37,17 +37,16 @@ npm run build:all
 
 ### 构建输出
 
-构建完成后，安装包输出到 `dist/` 目录：
+构建完成后，安装包输出到 `dist/` 目录。文件名格式：`LanFlare-{version}-{平台}-{arch}.{ext}`
 
-| 平台 | 文件 |
-|------|------|
-| Windows | `dist/LanFlare Setup 1.0.0.exe` |
-| Windows portable | `dist/LanFlare 1.0.0.exe` |
-| macOS | `dist/LanFlare-1.0.0.dmg` |
-| macOS zip | `dist/LanFlare-1.0.0-mac.zip` |
-| Linux AppImage | `dist/LanFlare-1.0.0.AppImage` |
-| Linux DEB | `dist/lanflare_1.0.0_amd64.deb` |
-| Linux RPM | `dist/lanflare-1.0.0.x86_64.rpm` |
+| 平台 | 架构 | 文件 |
+|------|------|------|
+| Windows | x64 | `LanFlare-1.0.0-Windows-x64-Setup.exe` |
+| Windows portable | x64 | `LanFlare-1.0.0-Windows-x64-Portable.exe` |
+| macOS | arm64 (Apple Silicon) | `LanFlare-1.0.0-macOS-arm64.dmg` / `.zip` |
+| macOS | x64 (Intel) | `LanFlare-1.0.0-macOS-x64.dmg` / `.zip` |
+| Linux | x64 | `LanFlare-1.0.0-Linux-x64.AppImage` / `.deb` / `.rpm` |
+| Linux | arm64 | `LanFlare-1.0.0-Linux-arm64.AppImage` / `.deb` / `.rpm` |
 
 ## 资源准备
 
@@ -138,132 +137,50 @@ git push origin v1.1.0
 
 ## GitHub Actions 自动构建
 
-项目配置了 GitHub Actions 自动构建，位于 `.github/workflows/`。
+项目配置了 GitHub Actions 自动构建，位于 `.github/workflows/build.yml`。
 
-### 当前 CI 流程
+### CI 构建矩阵
 
-推送 tag（格式 `v*.*.*`）时自动触发：
+推送 tag（格式 `v*`）或手动触发时，5 个 job **并行**构建：
 
-1. 在 Windows、macOS、Linux 三个环境并行构建
-2. 上传构建产物到 GitHub Release
+| Job | Runner | 产物 |
+|-----|--------|------|
+| `build-windows` | `windows-latest` (x64) | `*-Windows-x64-Setup.exe`, `*-Windows-x64-Portable.exe` |
+| `build-macos-arm64` | `macos-14` (Apple Silicon) | `*-macOS-arm64.dmg`, `*-macOS-arm64.zip` |
+| `build-macos-x64` | `macos-14` (交叉编译) | `*-macOS-x64.dmg`, `*-macOS-x64.zip` |
+| `build-linux-x64` | `ubuntu-latest` | `*-Linux-x64.AppImage/.deb/.rpm` |
+| `build-linux-arm64` | `ubuntu-24.04-arm` | `*-Linux-arm64.AppImage/.deb/.rpm` |
 
-### 完整 CI/CD 配置示例
+> **macOS x64 交叉编译**: electron-builder 支持在 Apple Silicon (`macos-14`) 上通过 `--x64` 标志交叉编译 Intel 版本，无需 Intel 机器。`macos-13` 已于 2025 年底被 GitHub 下线。
 
-如需配置自动发布，可使用以下工作流：
+> **Linux arm64 fpm**: electron-builder 捆绑的 fpm 是 x86 二进制，在 ARM64 机器上无法运行。因此 `build-linux-arm64` job 通过 `gem install fpm` 安装原生 fpm，并设置 `USE_SYSTEM_FPM=true`。
 
-```yaml
-# .github/workflows/release.yml
-name: Release
+### Release 流程
 
-on:
-  push:
-    tags:
-      - 'v*.*.*'
+所有 5 个 job 完成后，`release` job 自动创建 **Draft Release**（草稿状态）：
 
-jobs:
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Build Windows
-        run: npm run build:win
-        
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: |
-            dist/*.exe
-            
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Build macOS
-        run: npm run build:mac
-        
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-build
-          path: |
-            dist/*.dmg
-            dist/*.zip
-            
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Build Linux
-        run: npm run build:linux
-        
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-build
-          path: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.rpm
-            
-  create-release:
-    needs: [build-windows, build-macos, build-linux]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            windows-build/*.exe
-            macos-build/*.dmg
-            macos-build/*.zip
-            linux-build/*.AppImage
-            linux-build/*.deb
-            linux-build/*.rpm
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-```
+1. 下载全部构建产物
+2. 创建草稿 Release，附上所有安装包
+3. **由维护者手动审核后点击 Publish 正式发布**
 
-### 本地构建发布（无 CI）
+预发布版本自动检测：tag 中包含 `-`（如 `v1.0.0-beta.1`）时自动标记为 Pre-release。
+
+### 手动触发
+
+在 GitHub Actions 页面点击 `workflow_dispatch`，填写版本号（如 `v1.1.0`）可手动触发构建和发布，无需推送 tag。
+
+### 本地构建（无 CI）
 
 ```bash
-# 不发布到远程，仅本地构建
+# 仅构建，不发布
 npm run build:win -- -p never
 npm run build:mac -- -p never
 npm run build:linux -- -p never
 
-# 发布到 GitHub Releases
-GITHUB_TOKEN=your_token npm run build:win -- -p always
+# 指定架构
+npm run build:mac -- --arm64 -p never
+npm run build:mac -- --x64 -p never
+npm run build:linux -- --arm64 -p never   # 需 Linux arm64 环境
 ```
 
 ## electron-builder 配置说明
@@ -291,17 +208,23 @@ GITHUB_TOKEN=your_token npm run build:win -- -p always
     "mac": {
       "target": ["dmg", "zip"],
       "icon": "build/icon.icns",
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "artifactName": "${productName}-${version}-macOS-${arch}.${ext}"
     },
     "linux": {
       "target": ["AppImage", "deb", "rpm"],
       "icon": "build/icon.png",
-      "category": "Utility"
+      "category": "Utility",
+      "artifactName": "${productName}-${version}-Linux-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true
+      "createDesktopShortcut": true,
+      "artifactName": "${productName}-${version}-Windows-${arch}-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-Windows-${arch}-Portable.${ext}"
     }
   }
 }
@@ -336,6 +259,33 @@ electron-builder 默认只打包 `dependencies`，不包含 `devDependencies`，
 ```
 
 ## 构建故障排除
+
+### Linux arm64 DEB/RPM 打包失败（fpm Exec format error）
+
+**问题**: `fpm-linux-x86/lib/ruby/bin.real/ruby: cannot execute binary file: Exec format error`
+
+**原因**: electron-builder 捆绑的 fpm 是 x86 二进制，无法在 ARM64 机器上运行。
+
+**解决**: 安装原生 fpm 并设置 `USE_SYSTEM_FPM=true`：
+
+```bash
+sudo apt-get install -y ruby ruby-dev build-essential
+sudo gem install fpm --no-document
+export USE_SYSTEM_FPM=true
+npm run build:linux -- --arm64 -p never
+```
+
+### macOS x64 Runner 不可用
+
+**问题**: `The configuration 'macos-13-us-default' is not supported`
+
+**原因**: GitHub 已于 2025 年底下线 `macos-13`（Intel）runner。
+
+**解决**: 改用 `macos-14`（Apple Silicon）并通过 `--x64` 交叉编译 Intel 版本：
+
+```bash
+npm run build:mac -- --x64 -p never
+```
 
 ### NSIS 打包失败
 
@@ -437,22 +387,24 @@ npx asar extract dist/mac/LanFlare.app/Contents/Resources/app.asar ./extracted
 
 ## 安装说明（供文档参考）
 
+> 下载文件时请根据自己的系统架构选择对应版本（Intel 芯片选 `x64`，Apple Silicon / 树莓派等选 `arm64`）。
+
 ### Windows
 
-1. 下载 `LanFlare Setup 1.0.0.exe`
-2. 运行安装程序
-3. 选择安装目录
-4. 完成安装后桌面出现快捷方式
+1. 下载 `LanFlare-1.0.0-Windows-x64-Setup.exe`
+2. 运行安装程序，选择安装目录
+3. 完成安装后桌面出现快捷方式
 
 或使用便携版（无需安装）：
-1. 下载 `LanFlare 1.0.0.exe`
+1. 下载 `LanFlare-1.0.0-Windows-x64-Portable.exe`
 2. 直接运行
 
 ### macOS
 
-1. 下载 `LanFlare-1.0.0.dmg`
-2. 打开 DMG
-3. 拖拽 `LanFlare.app` 到 Applications 文件夹
+1. 根据芯片下载对应 DMG：
+   - Apple Silicon（M1/M2/M3）→ `LanFlare-1.0.0-macOS-arm64.dmg`
+   - Intel → `LanFlare-1.0.0-macOS-x64.dmg`
+2. 打开 DMG，将 `LanFlare.app` 拖拽到 Applications 文件夹
 
 遇到"无法打开"提示（未签名）:
 ```bash
@@ -462,23 +414,28 @@ xattr -cr /Applications/LanFlare.app
 ### Linux (AppImage)
 
 ```bash
-# 添加执行权限
-chmod +x LanFlare-1.0.0.AppImage
+# x64
+chmod +x LanFlare-1.0.0-Linux-x64.AppImage
+./LanFlare-1.0.0-Linux-x64.AppImage
 
-# 运行
-./LanFlare-1.0.0.AppImage
+# arm64（树莓派、Raspberry Pi 400 等）
+chmod +x LanFlare-1.0.0-Linux-arm64.AppImage
+./LanFlare-1.0.0-Linux-arm64.AppImage
 ```
 
 或集成到系统：
 ```bash
-# 使用 AppImageLauncher 工具
 sudo apt install appimagelauncher
 ```
 
 ### Linux (DEB - Ubuntu/Debian)
 
 ```bash
-sudo dpkg -i lanflare_1.0.0_amd64.deb
+# x64
+sudo dpkg -i LanFlare-1.0.0-Linux-x64.deb
+
+# arm64
+sudo dpkg -i LanFlare-1.0.0-Linux-arm64.deb
 
 # 运行
 lanflare
@@ -487,7 +444,11 @@ lanflare
 ### Linux (RPM - Fedora/CentOS)
 
 ```bash
-sudo rpm -i lanflare-1.0.0.x86_64.rpm
+# x64
+sudo rpm -i LanFlare-1.0.0-Linux-x64.rpm
+
+# arm64
+sudo rpm -i LanFlare-1.0.0-Linux-arm64.rpm
 
 # 运行
 lanflare
