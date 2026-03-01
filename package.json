@@ -2,7 +2,7 @@
   "name": "lanflare",
   "version": "1.0.0",
   "description": "LAN file transfer & shared clipboard app",
-  "author": "LanFlare",
+  "author": "LanFlare <quyansiyuanwang@qq.com>",
   "main": "dist/main.js",
   "scripts": {
     "tsc": "tsc",
