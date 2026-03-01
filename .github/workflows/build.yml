@@ -175,7 +175,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: LanFlare ${{ steps.tag.outputs.tag }}
-          draft: false
+          draft: true
           prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
           generate_release_notes: true
           files: |
