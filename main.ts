@@ -101,7 +101,10 @@ function createWindow(): void {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    icon: path.join(__dirname, "..", "src", "renderer", "icon.png"),
+    icon: path.join(
+      __dirname, "..", "build",
+      process.platform === "win32" ? "icon.ico" : "icon.png"
+    ),
   });
 
   mainWindow.loadFile(path.join(__dirname, "..", "src", "renderer", "index.html"));

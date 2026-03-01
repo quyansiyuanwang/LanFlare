@@ -1,6 +1,8 @@
-# LanFlare 🔥
+# LanFlare
 
 <div align="center">
+
+<img src="build/icon.png" width="120" alt="LanFlare icon"/>
 
 **快速、安全的局域网文件传输和剪贴板同步工具**
 
