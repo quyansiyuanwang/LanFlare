@@ -7,7 +7,7 @@
 **快速、安全的局域网文件传输和剪贴板同步工具**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](https://github.com/yourusername/LanFlare)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](https://github.com/quyansiyuanwang/LanFlare)
 [![Electron](https://img.shields.io/badge/Electron-28.3.3-blue.svg)](https://www.electronjs.org/)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
@@ -32,7 +32,7 @@
 
 ### 下载
 
-从 [Releases](https://github.com/yourusername/LanFlare/releases) 页面下载适合您系统的版本：
+从 [Releases](https://github.com/quyansiyuanwang/LanFlare/releases) 页面下载适合您系统的版本：
 
 - **Windows**: `LanFlare-1.0.0-Windows-x64-Setup.exe` 或 `LanFlare-1.0.0-Windows-x64-Portable.exe`
 - **macOS (Apple Silicon)**: `LanFlare-1.0.0-macOS-arm64.dmg`
@@ -111,7 +111,7 @@ LanFlare 内置 Web 服务器，支持浏览器端上传文件：
 ### 克隆项目
 
 ```bash
-git clone https://github.com/yourusername/LanFlare.git
+git clone https://github.com/quyansiyuanwang/LanFlare.git
 cd LanFlare
 ```
 
@@ -179,7 +179,7 @@ LanFlare 使用以下端口（确保防火墙允许）：
 ## 📧 联系方式
 
 - Email: quyansiyuanwang@qq.com
-- Issues: [GitHub Issues](https://github.com/yourusername/LanFlare/issues)
+- Issues: [GitHub Issues](https://github.com/quyansiyuanwang/LanFlare/issues)
 
 ---
 

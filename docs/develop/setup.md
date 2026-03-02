@@ -35,10 +35,10 @@
 
 ```bash
 # 使用 HTTPS
-git clone https://github.com/yourusername/LanFlare.git
+git clone https://github.com/quyansiyuanwang/LanFlare.git
 
 # 或使用 SSH
-git clone git@github.com:yourusername/LanFlare.git
+git clone git@github.com:quyansiyuanwang/LanFlare.git
 
 cd LanFlare
 ```
@@ -499,6 +499,6 @@ socket.on('data', (chunk) => {
 
 ## 获取帮助
 
-- 查看 [GitHub Issues](https://github.com/yourusername/LanFlare/issues)
+- 查看 [GitHub Issues](https://github.com/quyansiyuanwang/LanFlare/issues)
 - 提交新 Issue 描述你的问题
-- 加入讨论 [GitHub Discussions](https://github.com/yourusername/LanFlare/discussions)
+- 加入讨论 [GitHub Discussions](https://github.com/quyansiyuanwang/LanFlare/discussions)
