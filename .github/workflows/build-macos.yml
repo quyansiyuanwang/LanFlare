@@ -35,6 +35,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
+      - name: Ad-hoc sign (macOS arm64)
+        run: |
+          for app in dist/mac-arm64/*.app; do
+            if [ -d "$app" ]; then
+              echo "Ad-hoc signing: $app"
+              codesign --force --deep --sign - "$app"
+            fi
+          done
+
       - name: List dist
         run: ls -lh dist/
 
@@ -70,6 +79,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Ad-hoc sign (macOS x64)
+        run: |
+          for app in dist/mac/*.app; do
+            if [ -d "$app" ]; then
+              echo "Ad-hoc signing: $app"
+              codesign --force --deep --sign - "$app"
+            fi
+          done
 
       - name: List dist
         run: ls -lh dist/
