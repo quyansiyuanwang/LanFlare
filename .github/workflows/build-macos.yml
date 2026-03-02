@@ -37,10 +37,15 @@ jobs:
 
       - name: Ad-hoc sign (macOS arm64)
         run: |
-          for app in dist/mac-arm64/*.app; do
+          echo "Searching for .app bundles..."
+          find dist -name "*.app" -type d
+
+          for app in dist/**/*.app; do
             if [ -d "$app" ]; then
               echo "Ad-hoc signing: $app"
               codesign --force --deep --sign - "$app"
+              echo "Verifying signature..."
+              codesign -dv "$app" 2>&1 || true
             fi
           done
 
@@ -82,10 +87,15 @@ jobs:
 
       - name: Ad-hoc sign (macOS x64)
         run: |
-          for app in dist/mac/*.app; do
+          echo "Searching for .app bundles..."
+          find dist -name "*.app" -type d
+
+          for app in dist/**/*.app; do
             if [ -d "$app" ]; then
               echo "Ad-hoc signing: $app"
               codesign --force --deep --sign - "$app"
+              echo "Verifying signature..."
+              codesign -dv "$app" 2>&1 || true
             fi
           done
 
