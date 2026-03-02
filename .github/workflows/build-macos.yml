@@ -90,6 +90,20 @@ jobs:
       - name: List dist
         run: ls -lh dist/
 
+      - name: Release (arm64)
+        if: ${{ inputs.version != '' && !contains(inputs.version, 'test') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: LanFlare ${{ inputs.version }}
+          draft: true
+          prerelease: ${{ contains(inputs.version, '-') }}
+          files: |
+            dist/*.dmg
+            dist/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload macOS arm64 artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -97,26 +111,8 @@ jobs:
           path: |
             dist/*.dmg
             dist/*.zip
-            dist/*.pkg
           if-no-files-found: warn
           retention-days: 7
-
-      - name: Create or update GitHub Release (arm64)
-        if: inputs.version != ''
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: LanFlare ${{ inputs.version }}
-          draft: true
-          prerelease: ${{ contains(inputs.version, '-') }}
-          generate_release_notes: true
-          files: |
-            dist/*.dmg
-            dist/*.zip
-            dist/*.pkg
-          fail_on_unmatched_files: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-macos-x64:
     name: Build · macOS (x64)
@@ -195,6 +191,20 @@ jobs:
       - name: List dist
         run: ls -lh dist/
 
+      - name: Release (x64)
+        if: ${{ inputs.version != '' && !contains(inputs.version, 'test') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: LanFlare ${{ inputs.version }}
+          draft: true
+          prerelease: ${{ contains(inputs.version, '-') }}
+          files: |
+            dist/*.dmg
+            dist/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload macOS x64 artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -202,23 +212,5 @@ jobs:
           path: |
             dist/*.dmg
             dist/*.zip
-            dist/*.pkg
           if-no-files-found: warn
           retention-days: 7
-
-      - name: Create or update GitHub Release (x64)
-        if: inputs.version != ''
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: LanFlare ${{ inputs.version }}
-          draft: true
-          prerelease: ${{ contains(inputs.version, '-') }}
-          generate_release_notes: true
-          files: |
-            dist/*.dmg
-            dist/*.zip
-            dist/*.pkg
-          fail_on_unmatched_files: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

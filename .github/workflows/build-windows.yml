@@ -37,6 +37,20 @@ jobs:
       - name: List dist
         run: Get-ChildItem -Path dist -Recurse -File | Select-Object FullName, Length
 
+      - name: Release
+        if: ${{ inputs.version != '' && !contains(inputs.version, 'test') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: LanFlare ${{ inputs.version }}
+          draft: true
+          prerelease: ${{ contains(inputs.version, '-') }}
+          files: |
+            dist/*.exe
+            dist/*.msi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -46,19 +60,3 @@ jobs:
             dist/*.msi
           if-no-files-found: warn
           retention-days: 7
-
-      - name: Create or update GitHub Release
-        if: inputs.version != ''
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: LanFlare ${{ inputs.version }}
-          draft: true
-          prerelease: ${{ contains(inputs.version, '-') }}
-          generate_release_notes: true
-          files: |
-            dist/*.exe
-            dist/*.msi
-          fail_on_unmatched_files: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
