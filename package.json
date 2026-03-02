@@ -46,7 +46,8 @@
       ],
       "icon": "build/icon.icns",
       "category": "public.app-category.utilities",
-      "artifactName": "${productName}-${version}-macOS-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-macOS-${arch}.${ext}",
+      "identity": null
     },
     "linux": {
       "target": [

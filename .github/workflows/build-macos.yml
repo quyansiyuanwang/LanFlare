@@ -33,7 +33,6 @@ jobs:
         run: npm run build:mac -- --arm64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Ad-hoc sign (macOS arm64)
         run: |
@@ -44,12 +43,30 @@ jobs:
             exit 1
           fi
           echo "Found app at: $APP_PATH"
-          echo "Signing app with Ad-hoc signature..."
+
+          echo "Signing all executables and frameworks..."
+          find "$APP_PATH/Contents" -type f \( -perm +111 -o -name "*.dylib" -o -name "*.so" \) -print0 | while IFS= read -r -d '' file; do
+            echo "Signing: $file"
+            codesign --sign - --force "$file" 2>&1 || true
+          done
+
+          echo "Signing frameworks..."
+          find "$APP_PATH/Contents/Frameworks" -name "*.framework" -type d 2>/dev/null | while read framework; do
+            echo "Signing framework: $framework"
+            codesign --sign - --force "$framework" 2>&1 || true
+          done
+
+          echo "Signing main app bundle with deep signature..."
           codesign --sign - --deep --force "$APP_PATH"
+
           echo "Verifying signature..."
           codesign --verify --verbose "$APP_PATH"
+
           echo "Displaying signature info..."
           codesign --display --verbose=4 "$APP_PATH"
+
+          echo "Checking for _CodeSignature directory..."
+          ls -la "$APP_PATH/Contents/" | grep -i code || echo "Warning: _CodeSignature not found"
 
       - name: List dist
         run: ls -lh dist/
@@ -85,7 +102,6 @@ jobs:
         run: npm run build:mac -- --x64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Ad-hoc sign (macOS x64)
         run: |
@@ -96,12 +112,30 @@ jobs:
             exit 1
           fi
           echo "Found app at: $APP_PATH"
-          echo "Signing app with Ad-hoc signature..."
+
+          echo "Signing all executables and frameworks..."
+          find "$APP_PATH/Contents" -type f \( -perm +111 -o -name "*.dylib" -o -name "*.so" \) -print0 | while IFS= read -r -d '' file; do
+            echo "Signing: $file"
+            codesign --sign - --force "$file" 2>&1 || true
+          done
+
+          echo "Signing frameworks..."
+          find "$APP_PATH/Contents/Frameworks" -name "*.framework" -type d 2>/dev/null | while read framework; do
+            echo "Signing framework: $framework"
+            codesign --sign - --force "$framework" 2>&1 || true
+          done
+
+          echo "Signing main app bundle with deep signature..."
           codesign --sign - --deep --force "$APP_PATH"
+
           echo "Verifying signature..."
           codesign --verify --verbose "$APP_PATH"
+
           echo "Displaying signature info..."
           codesign --display --verbose=4 "$APP_PATH"
+
+          echo "Checking for _CodeSignature directory..."
+          ls -la "$APP_PATH/Contents/" | grep -i code || echo "Warning: _CodeSignature not found"
 
       - name: List dist
         run: ls -lh dist/
