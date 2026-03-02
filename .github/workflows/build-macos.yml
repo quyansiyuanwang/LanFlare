@@ -30,7 +30,7 @@ jobs:
         run: npm ci
 
       - name: Build (macOS arm64)
-        run: npm run build:mac -- --arm64 --publish never
+        run: npm run build:mac -- --arm64 --dir --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -67,6 +67,25 @@ jobs:
 
           echo "Checking for _CodeSignature directory..."
           ls -la "$APP_PATH/Contents/" | grep -i code || echo "Warning: _CodeSignature not found"
+
+      - name: Create DMG and ZIP (macOS arm64)
+        run: |
+          APP_PATH=$(find dist -name "*.app" -type d | head -n 1)
+          APP_NAME=$(basename "$APP_PATH")
+
+          echo "Creating ZIP archive..."
+          cd "$(dirname "$APP_PATH")"
+          ditto -c -k --keepParent "$APP_NAME" "../LanFlare-1.0.0-macOS-arm64.zip"
+          cd -
+
+          echo "Installing create-dmg..."
+          npm install --global create-dmg
+
+          echo "Creating DMG..."
+          cd "$(dirname "$APP_PATH")"
+          create-dmg "$APP_NAME" . || true
+          mv *.dmg "../LanFlare-1.0.0-macOS-arm64.dmg" || true
+          cd -
 
       - name: List dist
         run: ls -lh dist/
@@ -116,7 +135,7 @@ jobs:
         run: npm ci
 
       - name: Build (macOS x64)
-        run: npm run build:mac -- --x64 --publish never
+        run: npm run build:mac -- --x64 --dir --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -153,6 +172,25 @@ jobs:
 
           echo "Checking for _CodeSignature directory..."
           ls -la "$APP_PATH/Contents/" | grep -i code || echo "Warning: _CodeSignature not found"
+
+      - name: Create DMG and ZIP (macOS x64)
+        run: |
+          APP_PATH=$(find dist -name "*.app" -type d | head -n 1)
+          APP_NAME=$(basename "$APP_PATH")
+
+          echo "Creating ZIP archive..."
+          cd "$(dirname "$APP_PATH")"
+          ditto -c -k --keepParent "$APP_NAME" "../LanFlare-1.0.0-macOS-x64.zip"
+          cd -
+
+          echo "Installing create-dmg..."
+          npm install --global create-dmg
+
+          echo "Creating DMG..."
+          cd "$(dirname "$APP_PATH")"
+          create-dmg "$APP_NAME" . || true
+          mv *.dmg "../LanFlare-1.0.0-macOS-x64.dmg" || true
+          cd -
 
       - name: List dist
         run: ls -lh dist/
