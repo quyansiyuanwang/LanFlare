@@ -38,7 +38,7 @@ jobs:
   # ─────────────────────────────────────────
   build-windows:
     name: Build Windows
-    if: github.event_name == 'push' || inputs.build_windows
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.build_windows
     uses: ./.github/workflows/build-windows.yml
     permissions:
       contents: write
@@ -47,7 +47,7 @@ jobs:
   # ─────────────────────────────────────────
   build-macos:
     name: Build macOS
-    if: github.event_name == 'push' || inputs.build_macos
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.build_macos
     uses: ./.github/workflows/build-macos.yml
     permissions:
       contents: write
@@ -56,7 +56,7 @@ jobs:
   # ─────────────────────────────────────────
   build-linux:
     name: Build Linux
-    if: github.event_name == 'push' || inputs.build_linux
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || inputs.build_linux
     uses: ./.github/workflows/build-linux.yml
     permissions:
       contents: write
