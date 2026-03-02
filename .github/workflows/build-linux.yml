@@ -42,22 +42,6 @@ jobs:
       - name: List dist
         run: ls -lh dist/
 
-      - name: Release (x64)
-        if: ${{ inputs.version != '' && !contains(inputs.version, 'test') }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: LanFlare ${{ inputs.version }}
-          draft: true
-          prerelease: ${{ contains(inputs.version, '-') }}
-          files: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Upload Linux x64 artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -100,22 +84,6 @@ jobs:
 
       - name: List dist
         run: ls -lh dist/
-
-      - name: Release (arm64)
-        if: ${{ inputs.version != '' && !contains(inputs.version, 'test') }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: LanFlare ${{ inputs.version }}
-          draft: true
-          prerelease: ${{ contains(inputs.version, '-') }}
-          files: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Linux arm64 artifacts
         uses: actions/upload-artifact@v4
