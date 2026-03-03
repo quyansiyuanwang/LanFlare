@@ -1,4 +1,15 @@
-import { app, BrowserWindow, ipcMain, dialog, clipboard, Notification, shell } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  clipboard,
+  Notification,
+  shell,
+  Tray,
+  Menu,
+  nativeImage,
+} from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import * as http from "http";
@@ -22,10 +33,14 @@ import { getDeviceName, getLocalIP } from "./src/main/utils";
 const CONFIG_DIR = path.join(app.getPath("userData"));
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
+// App state
+let isQuitting = false;
+
 interface AppConfig {
   saveDir?: string;
   useNativeFrame?: boolean;
   autoAcceptConnections?: boolean;
+  minimizeToTray?: boolean;
 }
 
 // Load config from file
@@ -54,6 +69,7 @@ function saveConfig(config: AppConfig): void {
 }
 
 let mainWindow: BrowserWindow | null;
+let tray: Tray | null = null;
 let discovery: Discovery | null = null;
 let transferServer: TransferServer | null = null;
 let clipboardSync: ClipboardSync | null = null;
@@ -129,6 +145,52 @@ function scheduleNotification(info: {
   }, 1500);
 }
 
+function createTray(): void {
+  const iconPath = path.join(
+    __dirname,
+    "..",
+    "build",
+    "icons",
+    process.platform === "win32" ? "icon.ico" : "icon.png"
+  );
+
+  const icon = nativeImage.createFromPath(iconPath);
+  tray = new Tray(icon.resize({ width: 16, height: 16 }));
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "显示窗口",
+      click: () => {
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      },
+    },
+    { type: "separator" },
+    {
+      label: "退出",
+      click: () => {
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setToolTip("LanFlare");
+  tray.setContextMenu(contextMenu);
+
+  tray.on("click", () => {
+    if (mainWindow) {
+      if (mainWindow.isVisible()) {
+        mainWindow.hide();
+      } else {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    }
+  });
+}
+
 function createWindow(): void {
   const config = loadConfig();
   const useNativeFrame = config.useNativeFrame ?? false;
@@ -155,6 +217,16 @@ function createWindow(): void {
     ),
   });
   mainWindow.loadFile(path.join(__dirname, "..", "src", "renderer", "index.html"));
+
+  mainWindow.on("close", (event) => {
+    const config = loadConfig();
+    const minimizeToTray = config.minimizeToTray ?? false;
+
+    if (minimizeToTray && !isQuitting) {
+      event.preventDefault();
+      mainWindow?.hide();
+    }
+  });
 
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -548,6 +620,22 @@ ipcMain.handle("set-auto-accept-setting", (_event, enabled: boolean) => {
   }
 });
 
+ipcMain.handle("get-minimize-to-tray-setting", () => {
+  const config = loadConfig();
+  return config.minimizeToTray ?? false;
+});
+
+ipcMain.handle("set-minimize-to-tray-setting", (_event, enabled: boolean) => {
+  try {
+    const config = loadConfig();
+    config.minimizeToTray = enabled;
+    saveConfig(config);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
+  }
+});
+
 ipcMain.handle("open-path", (_e, p: string) => {
   if (fs.existsSync(p)) {
     shell.showItemInFolder(p);
@@ -749,17 +837,27 @@ ipcMain.handle("restart-app", () => {
 // ---- App Lifecycle ----
 
 app.whenReady().then(() => {
+  createTray();
   createWindow();
   startServices();
 });
 
+app.on("before-quit", () => {
+  isQuitting = true;
+});
+
 app.on("window-all-closed", () => {
-  if (discovery) discovery.stop();
-  if (transferServer) transferServer.stop();
-  if (clipboardSync) clipboardSync.stop();
-  if (connectionAuth) connectionAuth.stop();
-  if (webReceiver) webReceiver.stop();
-  app.quit();
+  const config = loadConfig();
+  const minimizeToTray = config.minimizeToTray ?? false;
+
+  if (!minimizeToTray || process.platform !== "darwin") {
+    if (discovery) discovery.stop();
+    if (transferServer) transferServer.stop();
+    if (clipboardSync) clipboardSync.stop();
+    if (connectionAuth) connectionAuth.stop();
+    if (webReceiver) webReceiver.stop();
+    app.quit();
+  }
 });
 
 app.on("activate", () => {

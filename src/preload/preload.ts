@@ -58,6 +58,9 @@ contextBridge.exposeInMainWorld("api", {
   getAutoAcceptSetting: () => ipcRenderer.invoke("get-auto-accept-setting"),
   setAutoAcceptSetting: (enabled: boolean) =>
     ipcRenderer.invoke("set-auto-accept-setting", enabled),
+  getMinimizeToTraySetting: () => ipcRenderer.invoke("get-minimize-to-tray-setting"),
+  setMinimizeToTraySetting: (enabled: boolean) =>
+    ipcRenderer.invoke("set-minimize-to-tray-setting", enabled),
 
   // Web receiver settings
   getWebSettings: () => ipcRenderer.invoke("get-web-settings"),
