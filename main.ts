@@ -41,6 +41,7 @@ interface AppConfig {
   useNativeFrame?: boolean;
   autoAcceptConnections?: boolean;
   minimizeToTray?: boolean;
+  theme?: "dark" | "light";
 }
 
 // Load config from file
@@ -620,15 +621,15 @@ ipcMain.handle("set-auto-accept-setting", (_event, enabled: boolean) => {
   }
 });
 
-ipcMain.handle("get-minimize-to-tray-setting", () => {
+ipcMain.handle("get-theme-setting", () => {
   const config = loadConfig();
-  return config.minimizeToTray ?? false;
+  return config.theme ?? "dark";
 });
 
-ipcMain.handle("set-minimize-to-tray-setting", (_event, enabled: boolean) => {
+ipcMain.handle("set-theme-setting", (_event, theme: "dark" | "light") => {
   try {
     const config = loadConfig();
-    config.minimizeToTray = enabled;
+    config.theme = theme;
     saveConfig(config);
     return { success: true };
   } catch (e) {

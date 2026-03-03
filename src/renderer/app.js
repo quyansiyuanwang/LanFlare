@@ -109,6 +109,33 @@ async function initSettings() {
     }
   });
 
+  // Theme select
+  const themeSelect = document.getElementById("theme-select");
+  const currentTheme = await window.api.getThemeSetting();
+  themeSelect.value = currentTheme;
+
+  // Apply theme on load
+  if (currentTheme === "light") {
+    document.body.classList.add("light-theme");
+  }
+
+  themeSelect.addEventListener("change", async () => {
+    const theme = themeSelect.value;
+    const result = await window.api.setThemeSetting(theme);
+    if (result.success) {
+      // Apply theme immediately
+      if (theme === "light") {
+        document.body.classList.add("light-theme");
+      } else {
+        document.body.classList.remove("light-theme");
+      }
+      showToast(theme === "light" ? "已切换到浅色模式" : "已切换到深色模式", "success");
+    } else {
+      showToast("设置失败", "error");
+      themeSelect.value = currentTheme;
+    }
+  });
+
   // Native window frame toggle
   const nativeFrameToggle = document.getElementById("native-frame-toggle");
   const useNativeFrame = await window.api.getWindowFrameSetting();
