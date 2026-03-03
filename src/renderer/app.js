@@ -322,7 +322,7 @@ async function selectDevice(device) {
       document.querySelector('[data-tab="send"]').click();
       showToast("连接已建立", "success");
     } else {
-      showToast("连接请求被拒绝", "error");
+      showToast(result.error || "连接请求被拒绝", "error");
     }
   } catch (err) {
     showToast(err.message || "连接请求失败", "error");

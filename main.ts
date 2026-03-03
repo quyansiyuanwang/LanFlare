@@ -281,7 +281,9 @@ ipcMain.handle(
       const approved = await connectionAuth.requestConnection(deviceIp, deviceId);
       return { approved };
     } catch (e) {
-      throw e;
+      const error = e as Error;
+      console.error("Connection request error:", error.message);
+      return { approved: false, error: error.message };
     }
   }
 );
