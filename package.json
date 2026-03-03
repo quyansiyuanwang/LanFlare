@@ -41,12 +41,20 @@
     },
     "mac": {
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dir",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ],
       "icon": "build/icon.icns",
       "category": "public.app-category.utilities",
-      "artifactName": "${productName}-${version}-macOS-${arch}.${ext}"
+      "identity": null
+    },
+    "dmg": {
+      "sign": false
     },
     "linux": {
       "target": [
