@@ -199,6 +199,7 @@ function createWindow(): void {
       __dirname,
       "..",
       "build",
+      "icons",
       process.platform === "win32" ? "icon.ico" : "icon.png"
     ),
   });
