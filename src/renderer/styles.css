@@ -31,6 +31,34 @@
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ============================================
+   Light Theme
+   ============================================ */
+
+body.light-theme {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-glass: rgba(255, 255, 255, 0.8);
+  --border: rgba(59, 130, 246, 0.15);
+  --border-active: rgba(59, 130, 246, 0.4);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --accent-1: #3b82f6;
+  --accent-2: #2563eb;
+  --accent-3: #0ea5e9;
+  --gradient-primary: linear-gradient(135deg, #3b82f6, #0ea5e9);
+  --gradient-secondary: linear-gradient(135deg, #0ea5e9, #3b82f6);
+  --gradient-success: linear-gradient(135deg, #10b981, #0ea5e9);
+  --gradient-danger: linear-gradient(135deg, #ef4444, #f97316);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -254,6 +282,16 @@ body {
   border-color: rgba(14, 165, 233, 0.28);
 }
 
+body.light-theme .web-url-bar {
+  background: rgba(14, 165, 233, 0.08);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+body.light-theme .web-url-bar:hover {
+  background: rgba(14, 165, 233, 0.12);
+  border-color: rgba(14, 165, 233, 0.35);
+}
+
 .web-url-bar-top {
   display: flex;
   align-items: center;
@@ -312,6 +350,10 @@ body {
   background: rgba(59, 130, 246, 0.05);
 }
 
+body.light-theme .setting-row:hover {
+  background: rgba(59, 130, 246, 0.08);
+}
+
 .setting-row-pw {
   flex-direction: column;
   align-items: flex-start;
@@ -354,6 +396,11 @@ body {
   cursor: pointer;
 }
 
+body.light-theme .toggle-track {
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 .toggle-track::before {
   content: "";
   position: absolute;
@@ -366,12 +413,47 @@ body {
   transition: transform var(--transition);
 }
 
+body.light-theme .toggle-track::before {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  left: 2px;
+  top: 2px;
+}
+
 .toggle-switch input:checked + .toggle-track {
   background: var(--accent-1);
 }
 
 .toggle-switch input:checked + .toggle-track::before {
   transform: translateX(14px);
+}
+
+/* Theme select */
+.theme-select {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  min-width: 100px;
+}
+
+.theme-select:hover {
+  border-color: var(--border-active);
+}
+
+.theme-select:focus {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.theme-select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 /* Password row */
@@ -396,6 +478,12 @@ body {
   transition: border-color var(--transition);
 }
 
+body.light-theme .pw-input-wrap input[type="password"],
+body.light-theme .pw-input-wrap input[type="text"] {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
 .pw-input-wrap input:focus {
   border-color: var(--accent-1);
 }
@@ -416,6 +504,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+body.light-theme .btn-pw-toggle,
+body.light-theme .btn-pw-apply {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .btn-pw-toggle:hover,
+body.light-theme .btn-pw-apply:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .btn-pw-toggle {

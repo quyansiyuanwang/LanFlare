@@ -11,6 +11,7 @@
     "lint:check": "eslint . --ext .ts --cache",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "precommit": "npm run tsc && npm run lint && npm run format",
     "copyassets": "node -e \"const fs=require('fs');fs.mkdirSync('dist/src/assets',{recursive:true});fs.copyFileSync('src/assets/web-receiver.html','dist/src/assets/web-receiver.html');\"",
     "start": "tsc && npm run copyassets && electron .",
     "dev": "tsc && npm run copyassets && electron .",

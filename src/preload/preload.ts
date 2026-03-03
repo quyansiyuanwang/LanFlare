@@ -61,6 +61,8 @@ contextBridge.exposeInMainWorld("api", {
   getMinimizeToTraySetting: () => ipcRenderer.invoke("get-minimize-to-tray-setting"),
   setMinimizeToTraySetting: (enabled: boolean) =>
     ipcRenderer.invoke("set-minimize-to-tray-setting", enabled),
+  getThemeSetting: () => ipcRenderer.invoke("get-theme-setting"),
+  setThemeSetting: (theme: "dark" | "light") => ipcRenderer.invoke("set-theme-setting", theme),
 
   // Web receiver settings
   getWebSettings: () => ipcRenderer.invoke("get-web-settings"),
