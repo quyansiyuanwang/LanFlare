@@ -39,6 +39,8 @@ contextBridge.exposeInMainWorld("api", {
   rejectConnection: (requestId: string) => ipcRenderer.invoke("reject-connection", requestId),
   onConnectionRequest: (cb: (request: unknown) => void) =>
     ipcRenderer.on("connection-request", (_, request) => cb(request)),
+  onConnectionAutoAccepted: (cb: (request: unknown) => void) =>
+    ipcRenderer.on("connection-auto-accepted", (_, request) => cb(request)),
 
   // Utility
   openSaveDir: () => ipcRenderer.invoke("open-save-dir"),
@@ -53,6 +55,9 @@ contextBridge.exposeInMainWorld("api", {
   getWindowFrameSetting: () => ipcRenderer.invoke("get-window-frame-setting"),
   setWindowFrameSetting: (useNativeFrame: boolean) =>
     ipcRenderer.invoke("set-window-frame-setting", useNativeFrame),
+  getAutoAcceptSetting: () => ipcRenderer.invoke("get-auto-accept-setting"),
+  setAutoAcceptSetting: (enabled: boolean) =>
+    ipcRenderer.invoke("set-auto-accept-setting", enabled),
 
   // Web receiver settings
   getWebSettings: () => ipcRenderer.invoke("get-web-settings"),
