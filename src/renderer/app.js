@@ -119,9 +119,7 @@ async function initSettings() {
     const result = await window.api.setWindowFrameSetting(enabled);
     if (result.success) {
       showToast(
-        enabled
-          ? "已启用原生窗口框架，请重启应用生效"
-          : "已禁用原生窗口框架，请重启应用生效",
+        enabled ? "已启用原生窗口框架，请重启应用生效" : "已禁用原生窗口框架，请重启应用生效",
         "info"
       );
     } else {
