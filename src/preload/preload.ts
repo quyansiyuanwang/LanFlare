@@ -46,6 +46,11 @@ contextBridge.exposeInMainWorld("api", {
   deleteFile: (p: string) => ipcRenderer.invoke("delete-file", p),
   deleteFolder: (p: string) => ipcRenderer.invoke("delete-folder", p),
 
+  // Settings
+  getSaveDir: () => ipcRenderer.invoke("get-save-dir"),
+  selectSaveDir: () => ipcRenderer.invoke("select-save-dir"),
+  setSaveDir: (dir: string) => ipcRenderer.invoke("set-save-dir", dir),
+
   // Web receiver settings
   getWebSettings: () => ipcRenderer.invoke("get-web-settings"),
   setWebSettings: (data: unknown) => ipcRenderer.invoke("set-web-settings", data),

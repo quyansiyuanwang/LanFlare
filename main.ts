@@ -10,7 +10,8 @@ import {
   sendFolder,
   sendText,
   sendClipboardData,
-  SAVE_DIR,
+  getSaveDir,
+  setSaveDir,
 } from "./src/main/transfer";
 import { ClipboardSync } from "./src/main/clipboard-sync";
 import { ConnectionAuth } from "./src/main/connection-auth";
@@ -123,6 +124,12 @@ function createWindow(): void {
 }
 
 function startServices(): void {
+  // Ensure save directory exists
+  const saveDir = getSaveDir();
+  if (!fs.existsSync(saveDir)) {
+    fs.mkdirSync(saveDir, { recursive: true });
+  }
+
   // Discovery
   discovery = new Discovery();
   discovery.start();
@@ -422,7 +429,28 @@ ipcMain.handle(
 );
 
 ipcMain.handle("open-save-dir", () => {
-  shell.openPath(SAVE_DIR);
+  shell.openPath(getSaveDir());
+});
+
+ipcMain.handle("get-save-dir", () => {
+  return getSaveDir();
+});
+
+ipcMain.handle("select-save-dir", async () => {
+  const result = await dialog.showOpenDialog(mainWindow!, {
+    properties: ["openDirectory", "createDirectory"],
+    title: "选择下载目录",
+  });
+  return result.filePaths[0] ?? null;
+});
+
+ipcMain.handle("set-save-dir", (_event, dir: string) => {
+  try {
+    setSaveDir(dir);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
+  }
 });
 
 ipcMain.handle("open-path", (_e, p: string) => {

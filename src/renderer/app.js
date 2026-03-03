@@ -12,6 +12,7 @@ let webTargetUrl = null; // manual web receiver target
 document.addEventListener("DOMContentLoaded", async () => {
   await initDeviceInfo();
   await initWebSettings();
+  await initSettings();
   initTabs();
   initActions();
   initDropZone();
@@ -88,6 +89,25 @@ function _updateWebBarState(enabled, urlBar) {
   } else {
     urlBar.classList.add("disabled");
   }
+}
+
+// ---- Settings ----
+async function initSettings() {
+  const saveDir = await window.api.getSaveDir();
+  document.getElementById("save-dir-display").textContent = saveDir;
+
+  document.getElementById("change-save-dir").addEventListener("click", async () => {
+    const newDir = await window.api.selectSaveDir();
+    if (newDir) {
+      const result = await window.api.setSaveDir(newDir);
+      if (result.success) {
+        document.getElementById("save-dir-display").textContent = newDir;
+        showToast("下载目录已更新", "success");
+      } else {
+        showToast("更新失败", "error");
+      }
+    }
+  });
 }
 
 // ---- Device Info ----
