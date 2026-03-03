@@ -50,6 +50,9 @@ contextBridge.exposeInMainWorld("api", {
   getSaveDir: () => ipcRenderer.invoke("get-save-dir"),
   selectSaveDir: () => ipcRenderer.invoke("select-save-dir"),
   setSaveDir: (dir: string) => ipcRenderer.invoke("set-save-dir", dir),
+  getWindowFrameSetting: () => ipcRenderer.invoke("get-window-frame-setting"),
+  setWindowFrameSetting: (useNativeFrame: boolean) =>
+    ipcRenderer.invoke("set-window-frame-setting", useNativeFrame),
 
   // Web receiver settings
   getWebSettings: () => ipcRenderer.invoke("get-web-settings"),

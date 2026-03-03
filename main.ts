@@ -25,6 +25,7 @@ const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
 interface AppConfig {
   saveDir?: string;
+  useNativeFrame?: boolean;
 }
 
 // Load config from file
@@ -129,12 +130,15 @@ function scheduleNotification(info: {
 }
 
 function createWindow(): void {
+  const config = loadConfig();
+  const useNativeFrame = config.useNativeFrame ?? false;
+
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 750,
     minWidth: 900,
     minHeight: 600,
-    frame: false,
+    frame: useNativeFrame,
     transparent: false,
     backgroundColor: "#0a0a1a",
     webPreferences: {
@@ -490,6 +494,22 @@ ipcMain.handle("set-save-dir", (_event, dir: string) => {
     // Save to config file
     const config = loadConfig();
     config.saveDir = dir;
+    saveConfig(config);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
+  }
+});
+
+ipcMain.handle("get-window-frame-setting", () => {
+  const config = loadConfig();
+  return config.useNativeFrame ?? false;
+});
+
+ipcMain.handle("set-window-frame-setting", (_event, useNativeFrame: boolean) => {
+  try {
+    const config = loadConfig();
+    config.useNativeFrame = useNativeFrame;
     saveConfig(config);
     return { success: true };
   } catch (e) {
