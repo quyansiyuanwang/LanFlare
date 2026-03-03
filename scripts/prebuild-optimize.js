@@ -35,31 +35,6 @@ if (fs.existsSync(wsPath)) {
   console.log(`\nWS module cleaned: ${formatBytes(removedSize)} removed\n`);
 }
 
-// 2. Optimize dist directory
-const distPath = path.join(__dirname, "..", "dist");
-if (fs.existsSync(distPath)) {
-  // Remove .d.ts files if any
-  removeFilesByPattern(distPath, /\.d\.ts$/);
-  // Remove .map files
-  removeFilesByPattern(distPath, /\.map$/);
-  console.log("✓ Cleaned dist directory\n");
-}
-
-// 3. Create production package.json (minimal)
-const packageJson = require("../package.json");
-const prodPackageJson = {
-  name: packageJson.name,
-  version: packageJson.version,
-  description: packageJson.description,
-  author: packageJson.author,
-  main: packageJson.main,
-  dependencies: packageJson.dependencies,
-};
-
-const prodPackagePath = path.join(__dirname, "..", "dist", "package.json");
-fs.writeFileSync(prodPackagePath, JSON.stringify(prodPackageJson, null, 2));
-console.log("✓ Created minimal package.json for production\n");
-
 console.log("=== Optimization Complete ===");
 
 // Helper functions
@@ -80,26 +55,6 @@ function getDirSize(dirPath) {
   }
   traverse(dirPath);
   return size;
-}
-
-function removeFilesByPattern(dir, pattern) {
-  function traverse(currentPath) {
-    try {
-      const files = fs.readdirSync(currentPath);
-      files.forEach((file) => {
-        const filePath = path.join(currentPath, file);
-        const stats = fs.statSync(filePath);
-        if (stats.isDirectory()) {
-          traverse(filePath);
-        } else if (pattern.test(file)) {
-          fs.unlinkSync(filePath);
-        }
-      });
-    } catch (e) {
-      // Ignore errors
-    }
-  }
-  traverse(dir);
 }
 
 function formatBytes(bytes) {

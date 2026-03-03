@@ -5,6 +5,7 @@
   "author": "LanFlare <quyansiyuanwang@qq.com>",
   "main": "dist/main.js",
   "scripts": {
+    "postinstall": "node scripts/fix-permissions.js",
     "tsc": "tsc",
     "tsc:check": "tsc --noEmit",
     "lint": "eslint . --fix --ext .ts --cache",
@@ -18,14 +19,14 @@
     "optimize-web": "node scripts/optimize-web-receiver.js",
     "remove-console": "node scripts/remove-console.js",
     "prebuild-optimize": "node scripts/prebuild-optimize.js",
-    "prebuild": "npm run tsc && npm run copyassets && npm run optimize && npm run optimize-web && npm run prebuild-optimize && npm run remove-console",
+    "prebuild": "npm run tsc && npm run copyassets",
     "start": "npm run prebuild && electron .",
     "dev": "npm run prebuild && electron .",
-    "build": "npm run prebuild && electron-builder",
-    "build:win": "npm run prebuild && electron-builder --win",
-    "build:mac": "npm run prebuild && electron-builder --mac",
-    "build:linux": "npm run prebuild && electron-builder --linux",
-    "build:all": "npm run prebuild && electron-builder --win --linux --mac",
+    "build": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder",
+    "build:win": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --win",
+    "build:mac": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --mac",
+    "build:linux": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --linux",
+    "build:all": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --win --linux --mac",
     "clean": "node -e \"const fs=require('fs');['dist','release'].forEach(d=>{if(fs.existsSync(d))fs.rmSync(d,{recursive:true,force:true})})\"",
     "analyze": "node scripts/analyze.js",
     "analyze:detailed": "node scripts/analyze-detailed.js"
@@ -95,12 +96,9 @@
     },
     "linux": {
       "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        }
+        "AppImage",
+        "deb",
+        "rpm"
       ],
       "icon": "build/icons",
       "category": "Utility",

@@ -37,20 +37,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Post-build optimization
-        run: |
-          npm run optimize
-          npm run remove-console
-
-      - name: List dist
-        run: Get-ChildItem -Path dist -Recurse -File | Select-Object FullName, Length
+      - name: List release
+        run: Get-ChildItem -Path release -Recurse -File | Select-Object FullName, Length
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-windows
           path: |
-            dist/*.exe
-            dist/*.msi
+            release/*.exe
+            release/*.msi
           if-no-files-found: warn
           retention-days: 7

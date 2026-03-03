@@ -37,17 +37,26 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Post-build optimization
+      - name: List build output
         run: |
-          npm run optimize
-          npm run remove-console
+          echo "=== Listing release directory ==="
+          find release -type d -name "*.app" 2>/dev/null || echo "No .app found in release/"
+          echo ""
+          echo "=== Full release structure ==="
+          ls -la release/ 2>/dev/null || echo "No release directory"
+          find release -maxdepth 3 -type d 2>/dev/null || true
 
       - name: Ad-hoc sign (macOS arm64)
         run: |
           echo "=== Creating Ad-hoc signature for macOS app ==="
-          APP_PATH=$(find dist -name "*.app" -type d | head -n 1)
+          APP_PATH=$(find release -name "*.app" -type d 2>/dev/null | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            echo "Error: No .app bundle found in dist/"
+            echo "Error: No .app bundle found in release/"
+            echo "Trying dist directory..."
+            APP_PATH=$(find dist -name "*.app" -type d 2>/dev/null | head -n 1)
+          fi
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: Still no .app bundle found"
             exit 1
           fi
           echo "Found app at: $APP_PATH"
@@ -78,7 +87,10 @@ jobs:
 
       - name: Create DMG and ZIP (macOS arm64)
         run: |
-          APP_PATH=$(find dist -name "*.app" -type d | head -n 1)
+          APP_PATH=$(find release -name "*.app" -type d 2>/dev/null | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            APP_PATH=$(find dist -name "*.app" -type d 2>/dev/null | head -n 1)
+          fi
           APP_NAME=$(basename "$APP_PATH")
 
           echo "Creating ZIP archive..."
@@ -95,16 +107,16 @@ jobs:
           mv *.dmg "../LanFlare-1.0.0-macOS-arm64.dmg" || true
           cd -
 
-      - name: List dist
-        run: ls -lh dist/
+      - name: List release
+        run: ls -lh release/
 
       - name: Upload macOS arm64 artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-macos-arm64
           path: |
-            dist/*.dmg
-            dist/*.zip
+            release/*.dmg
+            release/*.zip
           if-no-files-found: warn
           retention-days: 7
 
@@ -132,17 +144,26 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Post-build optimization
+      - name: List build output
         run: |
-          npm run optimize
-          npm run remove-console
+          echo "=== Listing release directory ==="
+          find release -type d -name "*.app" 2>/dev/null || echo "No .app found in release/"
+          echo ""
+          echo "=== Full release structure ==="
+          ls -la release/ 2>/dev/null || echo "No release directory"
+          find release -maxdepth 3 -type d 2>/dev/null || true
 
       - name: Ad-hoc sign (macOS x64)
         run: |
           echo "=== Creating Ad-hoc signature for macOS app ==="
-          APP_PATH=$(find dist -name "*.app" -type d | head -n 1)
+          APP_PATH=$(find release -name "*.app" -type d 2>/dev/null | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            echo "Error: No .app bundle found in dist/"
+            echo "Error: No .app bundle found in release/"
+            echo "Trying dist directory..."
+            APP_PATH=$(find dist -name "*.app" -type d 2>/dev/null | head -n 1)
+          fi
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: Still no .app bundle found"
             exit 1
           fi
           echo "Found app at: $APP_PATH"
@@ -173,7 +194,10 @@ jobs:
 
       - name: Create DMG and ZIP (macOS x64)
         run: |
-          APP_PATH=$(find dist -name "*.app" -type d | head -n 1)
+          APP_PATH=$(find release -name "*.app" -type d 2>/dev/null | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            APP_PATH=$(find dist -name "*.app" -type d 2>/dev/null | head -n 1)
+          fi
           APP_NAME=$(basename "$APP_PATH")
 
           echo "Creating ZIP archive..."
@@ -190,15 +214,15 @@ jobs:
           mv *.dmg "../LanFlare-1.0.0-macOS-x64.dmg" || true
           cd -
 
-      - name: List dist
-        run: ls -lh dist/
+      - name: List release
+        run: ls -lh release/
 
       - name: Upload macOS x64 artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-macos-x64
           path: |
-            dist/*.dmg
-            dist/*.zip
+            release/*.dmg
+            release/*.zip
           if-no-files-found: warn
           retention-days: 7
