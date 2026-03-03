@@ -693,6 +693,7 @@ function renderReceiveHistory() {
       meta = "文本";
     }
 
+    const copyBtn = `<button class="receive-copy-btn" title="复制"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>`;
     const delBtn = `<button class="receive-delete-btn" title="删除"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l8 8M6 14L14 6"/></svg></button>`;
 
     el.innerHTML = `
@@ -702,16 +703,53 @@ function renderReceiveHistory() {
         <div class="receive-item-meta">来自 ${escapeHtml(item.from || "Unknown")} · ${meta}</div>
       </div>
       <div class="receive-item-time">${formatTime(item.timestamp)}</div>
+      ${copyBtn}
       ${delBtn}
     `;
 
     // 点击打开
     el.addEventListener("click", (e) => {
       if (e.target.closest(".receive-delete-btn")) return;
+      if (e.target.closest(".receive-copy-btn")) return;
       if (item.type === "folder" && (item.folderSavePath || item.savePath)) {
         window.api.openPath(item.folderSavePath || item.savePath);
       } else if ((item.type === "file" || item.type === "clipboard-image") && item.savePath) {
         window.api.openPath(item.savePath);
+      }
+    });
+
+    // 复制按钮事件
+    el.querySelector(".receive-copy-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      let copyContent = "";
+
+      if (item.type === "text" || item.type === "clipboard-text") {
+        // 复制文本内容
+        copyContent = item.content || "";
+      } else if (item.type === "folder" && (item.folderSavePath || item.savePath)) {
+        // 复制文件夹路径
+        copyContent = item.folderSavePath || item.savePath;
+      } else if ((item.type === "file" || item.type === "clipboard-image") && item.savePath) {
+        // 复制文件路径
+        copyContent = item.savePath;
+      }
+
+      if (copyContent) {
+        navigator.clipboard
+          .writeText(copyContent)
+          .then(() => {
+            showToast("已复制", "success");
+          })
+          .catch(() => {
+            // fallback
+            const ta = document.createElement("textarea");
+            ta.value = copyContent;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            ta.remove();
+            showToast("已复制", "success");
+          });
       }
     });
 

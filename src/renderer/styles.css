@@ -1126,8 +1126,8 @@ body {
 .receive-item:hover {
   background: rgba(59, 130, 246, 0.07);
 }
-.receive-delete-btn {
-  margin-left: 10px;
+.receive-copy-btn {
+  margin-left: 4px;
   background: none;
   border: none;
   color: var(--text-muted);
@@ -1135,14 +1135,33 @@ body {
   border-radius: 6px;
   padding: 2px 7px;
   cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-  opacity: 0.7;
+  transition: all var(--transition);
+  opacity: 0;
+}
+.receive-copy-btn:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent-1);
+}
+.receive-item:hover .receive-copy-btn {
+  opacity: 1;
+}
+.receive-delete-btn {
+  margin-left: 4px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all var(--transition);
+  opacity: 0;
 }
 .receive-delete-btn:hover {
-  background: rgba(239, 68, 68, 0.13);
+  background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
+}
+.receive-item:hover .receive-delete-btn {
   opacity: 1;
 }
 
