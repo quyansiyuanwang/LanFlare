@@ -6,7 +6,20 @@ import { EventEmitter } from "events";
 import { generateId } from "./utils";
 
 export const TRANSFER_PORT = 53319;
-export const SAVE_DIR = path.join(os.homedir(), "Downloads", "LanFlare");
+let SAVE_DIR = path.join(os.homedir(), "Downloads", "LanFlare");
+
+// Allow changing save directory
+export function setSaveDir(dir: string): void {
+  SAVE_DIR = dir;
+  // Ensure directory exists
+  if (!fs.existsSync(SAVE_DIR)) {
+    fs.mkdirSync(SAVE_DIR, { recursive: true });
+  }
+}
+
+export function getSaveDir(): string {
+  return SAVE_DIR;
+}
 
 // ---- Types ----
 

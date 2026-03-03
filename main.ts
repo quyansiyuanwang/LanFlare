@@ -3,6 +3,7 @@ import * as path from "path";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
+import * as os from "os";
 import { Discovery } from "./src/main/discovery";
 import {
   TransferServer,
@@ -10,12 +11,46 @@ import {
   sendFolder,
   sendText,
   sendClipboardData,
-  SAVE_DIR,
+  getSaveDir,
+  setSaveDir,
 } from "./src/main/transfer";
 import { ClipboardSync } from "./src/main/clipboard-sync";
 import { ConnectionAuth } from "./src/main/connection-auth";
 import { WebReceiver, WEB_PORT } from "./src/main/web-receiver";
 import { getDeviceName, getLocalIP } from "./src/main/utils";
+
+// Config file path
+const CONFIG_DIR = path.join(app.getPath("userData"));
+const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
+
+interface AppConfig {
+  saveDir?: string;
+}
+
+// Load config from file
+function loadConfig(): AppConfig {
+  try {
+    if (fs.existsSync(CONFIG_FILE)) {
+      const data = fs.readFileSync(CONFIG_FILE, "utf-8");
+      return JSON.parse(data);
+    }
+  } catch (e) {
+    console.error("Failed to load config:", e);
+  }
+  return {};
+}
+
+// Save config to file
+function saveConfig(config: AppConfig): void {
+  try {
+    if (!fs.existsSync(CONFIG_DIR)) {
+      fs.mkdirSync(CONFIG_DIR, { recursive: true });
+    }
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
+  } catch (e) {
+    console.error("Failed to save config:", e);
+  }
+}
 
 let mainWindow: BrowserWindow | null;
 let discovery: Discovery | null = null;
@@ -123,6 +158,18 @@ function createWindow(): void {
 }
 
 function startServices(): void {
+  // Load config and apply saved settings
+  const config = loadConfig();
+  if (config.saveDir) {
+    setSaveDir(config.saveDir);
+  }
+
+  // Ensure save directory exists
+  const saveDir = getSaveDir();
+  if (!fs.existsSync(saveDir)) {
+    fs.mkdirSync(saveDir, { recursive: true });
+  }
+
   // Discovery
   discovery = new Discovery();
   discovery.start();
@@ -422,7 +469,32 @@ ipcMain.handle(
 );
 
 ipcMain.handle("open-save-dir", () => {
-  shell.openPath(SAVE_DIR);
+  shell.openPath(getSaveDir());
+});
+
+ipcMain.handle("get-save-dir", () => {
+  return getSaveDir();
+});
+
+ipcMain.handle("select-save-dir", async () => {
+  const result = await dialog.showOpenDialog(mainWindow!, {
+    properties: ["openDirectory", "createDirectory"],
+    title: "选择下载目录",
+  });
+  return result.filePaths[0] ?? null;
+});
+
+ipcMain.handle("set-save-dir", (_event, dir: string) => {
+  try {
+    setSaveDir(dir);
+    // Save to config file
+    const config = loadConfig();
+    config.saveDir = dir;
+    saveConfig(config);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
+  }
 });
 
 ipcMain.handle("open-path", (_e, p: string) => {
