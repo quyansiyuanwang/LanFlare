@@ -29,10 +29,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Pre-build optimization
+        run: npm run prebuild-optimize
+
       - name: Build (Windows)
         run: npm run build:win -- --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post-build optimization
+        run: |
+          npm run optimize
+          npm run remove-console
 
       - name: List dist
         run: Get-ChildItem -Path dist -Recurse -File | Select-Object FullName, Length

@@ -34,10 +34,18 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y rpm libarchive-tools
 
+      - name: Pre-build optimization
+        run: npm run prebuild-optimize
+
       - name: Build (Linux x64)
         run: npm run build:linux -- --x64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post-build optimization
+        run: |
+          npm run optimize
+          npm run remove-console
 
       - name: List dist
         run: ls -lh dist/
@@ -76,11 +84,19 @@ jobs:
           sudo apt-get install -y rpm libarchive-tools ruby ruby-dev build-essential
           sudo gem install fpm --no-document
 
+      - name: Pre-build optimization
+        run: npm run prebuild-optimize
+
       - name: Build (Linux arm64)
         run: npm run build:linux -- --arm64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USE_SYSTEM_FPM: true
+
+      - name: Post-build optimization
+        run: |
+          npm run optimize
+          npm run remove-console
 
       - name: List dist
         run: ls -lh dist/
