@@ -118,9 +118,10 @@ async function initSettings() {
     const enabled = nativeFrameToggle.checked;
     const result = await window.api.setWindowFrameSetting(enabled);
     if (result.success) {
-      showToast(
-        enabled ? "已启用原生窗口框架，请重启应用生效" : "已禁用原生窗口框架，请重启应用生效",
-        "info"
+      // Show restart confirmation dialog
+      showRestartConfirmModal(
+        enabled ? "已启用原生窗口框架" : "已禁用原生窗口框架",
+        "需要重启应用才能生效，是否立即重启？"
       );
     } else {
       showToast("设置失败", "error");
@@ -922,6 +923,37 @@ function showDeleteModal(fileName, callback) {
   btnFile.onclick = () => {
     cleanup();
     callback("file");
+  };
+}
+
+// ---- Restart Confirm Modal ----
+function showRestartConfirmModal(title, message) {
+  const modal = document.getElementById("restart-modal");
+  const titleEl = document.getElementById("restart-modal-title");
+  const descEl = document.getElementById("restart-modal-desc");
+  const btnCancel = document.getElementById("restart-cancel");
+  const btnRestart = document.getElementById("restart-confirm");
+
+  titleEl.textContent = title;
+  descEl.textContent = message;
+  modal.classList.remove("hidden");
+
+  function cleanup() {
+    modal.classList.add("hidden");
+    btnCancel.onclick = null;
+    btnRestart.onclick = null;
+    document.getElementById("restart-modal-overlay").onclick = null;
+  }
+
+  document.getElementById("restart-modal-overlay").onclick = () => {
+    cleanup();
+  };
+  btnCancel.onclick = () => {
+    cleanup();
+  };
+  btnRestart.onclick = () => {
+    cleanup();
+    window.api.restartApp();
   };
 }
 

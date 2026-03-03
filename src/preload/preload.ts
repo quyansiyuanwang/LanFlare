@@ -75,4 +75,5 @@ contextBridge.exposeInMainWorld("api", {
   windowMinimize: () => ipcRenderer.invoke("window-minimize"),
   windowMaximize: () => ipcRenderer.invoke("window-maximize"),
   windowClose: () => ipcRenderer.invoke("window-close"),
+  restartApp: () => ipcRenderer.invoke("restart-app"),
 });
