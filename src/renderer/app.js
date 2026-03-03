@@ -108,6 +108,25 @@ async function initSettings() {
       }
     }
   });
+
+  // Native window frame toggle
+  const nativeFrameToggle = document.getElementById("native-frame-toggle");
+  const useNativeFrame = await window.api.getWindowFrameSetting();
+  nativeFrameToggle.checked = useNativeFrame;
+
+  nativeFrameToggle.addEventListener("change", async () => {
+    const enabled = nativeFrameToggle.checked;
+    const result = await window.api.setWindowFrameSetting(enabled);
+    if (result.success) {
+      showToast(
+        enabled ? "已启用原生窗口框架，请重启应用生效" : "已禁用原生窗口框架，请重启应用生效",
+        "info"
+      );
+    } else {
+      showToast("设置失败", "error");
+      nativeFrameToggle.checked = !enabled;
+    }
+  });
 }
 
 // ---- Device Info ----
@@ -794,7 +813,14 @@ function addClipboardLog(info) {
 }
 
 // ---- Window Controls ----
-function initWindowControls() {
+async function initWindowControls() {
+  // Check if using native frame and hide custom titlebar if so
+  const useNativeFrame = await window.api.getWindowFrameSetting();
+  const titlebar = document.getElementById("titlebar");
+  if (useNativeFrame) {
+    titlebar.style.display = "none";
+  }
+
   document
     .getElementById("btn-minimize")
     .addEventListener("click", () => window.api.windowMinimize());
