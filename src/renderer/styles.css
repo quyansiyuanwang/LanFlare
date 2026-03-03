@@ -67,10 +67,7 @@ body.light-theme {
 
 body {
   font-family:
-    "Inter",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "微软雅黑", sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   overflow: hidden;

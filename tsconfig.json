@@ -9,10 +9,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "sourceMap": true,
-    "declaration": true,
-    "declarationDir": "./dist"
+    "sourceMap": false,
+    "declaration": false,
+    "removeComments": true,
+    "importHelpers": false,
+    "downlevelIteration": false
   },
   "include": ["main.ts", "src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "renderer"]
+  "exclude": ["node_modules", "dist", "renderer", "scripts"]
 }

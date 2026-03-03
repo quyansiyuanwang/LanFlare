@@ -90,11 +90,22 @@ export function listenTransferEvents() {
     showToast(`接收中: ${info.fileName || "文件"}`, "info");
   });
 
+  window.api.onTransferProgress((info) => {
+    document.getElementById("send-progress-fill").style.width = info.percent + "%";
+    document.getElementById("send-progress-percent").textContent = info.percent + "%";
+  });
+
   window.api.onTransferComplete((info) => {
     addReceiveHistory({
       ...info,
       timestamp: Date.now(),
     });
+
+    // Memory optimization: limit history to 100 items
+    if (receiveHistory.length > 100) {
+      receiveHistory.splice(100);
+    }
+
     renderReceiveHistory();
     updateReceiveBadge();
   });
