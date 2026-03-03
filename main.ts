@@ -139,6 +139,7 @@ function createWindow(): void {
     minWidth: 900,
     minHeight: 600,
     frame: useNativeFrame,
+    autoHideMenuBar: true,
     transparent: false,
     backgroundColor: "#0a0a1a",
     webPreferences: {
@@ -153,7 +154,6 @@ function createWindow(): void {
       process.platform === "win32" ? "icon.ico" : "icon.png"
     ),
   });
-
   mainWindow.loadFile(path.join(__dirname, "..", "src", "renderer", "index.html"));
 
   mainWindow.on("closed", () => {
@@ -740,6 +740,10 @@ ipcMain.handle("window-maximize", () => {
 });
 ipcMain.handle("window-close", () => {
   mainWindow?.close();
+});
+ipcMain.handle("restart-app", () => {
+  app.relaunch();
+  app.exit(0);
 });
 
 // ---- App Lifecycle ----
