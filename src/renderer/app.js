@@ -144,6 +144,22 @@ async function initSettings() {
       autoAcceptToggle.checked = !enabled;
     }
   });
+
+  // Minimize to tray toggle
+  const minimizeToTrayToggle = document.getElementById("minimize-to-tray-toggle");
+  const minimizeToTrayEnabled = await window.api.getMinimizeToTraySetting();
+  minimizeToTrayToggle.checked = minimizeToTrayEnabled;
+
+  minimizeToTrayToggle.addEventListener("change", async () => {
+    const enabled = minimizeToTrayToggle.checked;
+    const result = await window.api.setMinimizeToTraySetting(enabled);
+    if (result.success) {
+      showToast(enabled ? "已启用最小化到托盘" : "已禁用最小化到托盘", "success");
+    } else {
+      showToast("设置失败", "error");
+      minimizeToTrayToggle.checked = !enabled;
+    }
+  });
 }
 
 // ---- Device Info ----
