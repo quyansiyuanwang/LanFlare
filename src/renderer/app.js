@@ -127,6 +127,22 @@ async function initSettings() {
       nativeFrameToggle.checked = !enabled;
     }
   });
+
+  // Auto-accept connections toggle
+  const autoAcceptToggle = document.getElementById("auto-accept-toggle");
+  const autoAcceptEnabled = await window.api.getAutoAcceptSetting();
+  autoAcceptToggle.checked = autoAcceptEnabled;
+
+  autoAcceptToggle.addEventListener("change", async () => {
+    const enabled = autoAcceptToggle.checked;
+    const result = await window.api.setAutoAcceptSetting(enabled);
+    if (result.success) {
+      showToast(enabled ? "已启用自动接受连接" : "已禁用自动接受连接", "success");
+    } else {
+      showToast("设置失败", "error");
+      autoAcceptToggle.checked = !enabled;
+    }
+  });
 }
 
 // ---- Device Info ----
@@ -637,6 +653,10 @@ function listenEvents() {
 
   window.api.onConnectionRequest((request) => {
     showConnectionRequestModal(request);
+  });
+
+  window.api.onConnectionAutoAccepted((request) => {
+    showToast(`已自动接受来自 ${request.fromDeviceName} 的连接`, "info");
   });
 }
 

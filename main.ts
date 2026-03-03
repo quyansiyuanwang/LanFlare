@@ -3,7 +3,6 @@ import * as path from "path";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
-import * as os from "os";
 import { Discovery } from "./src/main/discovery";
 import {
   TransferServer,
@@ -26,6 +25,7 @@ const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 interface AppConfig {
   saveDir?: string;
   useNativeFrame?: boolean;
+  autoAcceptConnections?: boolean;
 }
 
 // Load config from file
@@ -185,11 +185,18 @@ function startServices(): void {
   });
 
   // Connection Authorization
-  connectionAuth = new ConnectionAuth(discovery.deviceId);
+  const autoAccept = config.autoAcceptConnections ?? false;
+  connectionAuth = new ConnectionAuth(discovery.deviceId, autoAccept);
   connectionAuth.start();
   connectionAuth.on("connection-request", (request) => {
     if (mainWindow) {
       mainWindow.webContents.send("connection-request", request);
+    }
+  });
+  connectionAuth.on("connection-auto-accepted", (request) => {
+    // Optional: show a subtle notification that connection was auto-accepted
+    if (mainWindow) {
+      mainWindow.webContents.send("connection-auto-accepted", request);
     }
   });
 
@@ -511,6 +518,28 @@ ipcMain.handle("set-window-frame-setting", (_event, useNativeFrame: boolean) => 
     const config = loadConfig();
     config.useNativeFrame = useNativeFrame;
     saveConfig(config);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
+  }
+});
+
+ipcMain.handle("get-auto-accept-setting", () => {
+  const config = loadConfig();
+  return config.autoAcceptConnections ?? false;
+});
+
+ipcMain.handle("set-auto-accept-setting", (_event, enabled: boolean) => {
+  try {
+    const config = loadConfig();
+    config.autoAcceptConnections = enabled;
+    saveConfig(config);
+
+    // Update runtime setting
+    if (connectionAuth) {
+      connectionAuth.setAutoAccept(enabled);
+    }
+
     return { success: true };
   } catch (e) {
     return { success: false, error: (e as Error).message };

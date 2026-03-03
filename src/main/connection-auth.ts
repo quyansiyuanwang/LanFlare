@@ -38,14 +38,24 @@ export class ConnectionAuth extends EventEmitter {
   private authorizedConnections: Map<string, number>; // deviceId -> expireTimestamp
   private pendingRequests: Map<string, PendingRequest>; // requestId -> request info
   private outgoingRequestSockets: Map<string, WebSocket>; // requestId -> socket
+  private autoAcceptEnabled: boolean;
 
-  constructor(deviceId: string) {
+  constructor(deviceId: string, autoAcceptEnabled = false) {
     super();
     this.server = null;
     this.deviceId = deviceId;
     this.authorizedConnections = new Map();
     this.pendingRequests = new Map();
     this.outgoingRequestSockets = new Map();
+    this.autoAcceptEnabled = autoAcceptEnabled;
+  }
+
+  setAutoAccept(enabled: boolean): void {
+    this.autoAcceptEnabled = enabled;
+  }
+
+  getAutoAccept(): boolean {
+    return this.autoAcceptEnabled;
   }
 
   start(): void {
@@ -157,6 +167,32 @@ export class ConnectionAuth extends EventEmitter {
         timestamp: Date.now(),
       };
       socket.send(JSON.stringify(response));
+      return;
+    }
+
+    // Auto-accept if enabled
+    if (this.autoAcceptEnabled) {
+      // Grant authorization for 1 hour
+      this.authorizedConnections.set(msg.fromDeviceId, Date.now() + 3600000);
+
+      const response: AuthMessage = {
+        type: "connection-response",
+        requestId,
+        fromDeviceId: this.deviceId,
+        fromDeviceName: getDeviceName(),
+        approved: true,
+        timestamp: Date.now(),
+      };
+      socket.send(JSON.stringify(response));
+
+      // Still emit event for logging/notification purposes
+      this.emit("connection-auto-accepted", {
+        requestId,
+        fromDeviceId: msg.fromDeviceId,
+        fromDeviceName: msg.fromDeviceName,
+        fromIp,
+        timestamp: msg.timestamp,
+      });
       return;
     }
 
