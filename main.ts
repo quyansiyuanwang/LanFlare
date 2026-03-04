@@ -1,9 +1,6 @@
 import {
   app,
   BrowserWindow,
-  ipcMain,
-  dialog,
-  clipboard,
   Notification,
   shell,
   Tray,
@@ -12,22 +9,18 @@ import {
 } from "electron";
 import * as path from "path";
 import * as fs from "fs";
-import * as http from "http";
-import * as https from "https";
 import { Discovery } from "./src/main/discovery";
-import {
-  TransferServer,
-  sendFile,
-  sendFolder,
-  sendText,
-  sendClipboardData,
-  getSaveDir,
-  setSaveDir,
-} from "./src/main/transfer";
+import { TransferServer, getSaveDir, setSaveDir } from "./src/main/transfer";
 import { ClipboardSync } from "./src/main/clipboard-sync";
 import { ConnectionAuth } from "./src/main/connection-auth";
-import { WebReceiver, WEB_PORT } from "./src/main/web-receiver";
-import { getDeviceName, getLocalIP } from "./src/main/utils";
+import { WebReceiver } from "./src/main/web-receiver";
+import { registerDeviceHandlers } from "./src/main/ipc-handlers/device-handlers";
+import { registerTransferHandlers } from "./src/main/ipc-handlers/transfer-handlers";
+import { registerConnectionHandlers } from "./src/main/ipc-handlers/connection-handlers";
+import { registerClipboardHandlers } from "./src/main/ipc-handlers/clipboard-handlers";
+import { registerSettingsHandlers } from "./src/main/ipc-handlers/settings-handlers";
+import { registerWebHandlers } from "./src/main/ipc-handlers/web-handlers";
+import { registerWindowHandlers } from "./src/main/ipc-handlers/window-handlers";
 
 // Config file path
 const CONFIG_DIR = path.join(app.getPath("userData"));
@@ -217,7 +210,7 @@ function createWindow(): void {
       process.platform === "win32" ? "icon.ico" : "icon.png"
     ),
   });
-  mainWindow.loadFile(path.join(__dirname, "..", "src", "renderer", "index.html"));
+  mainWindow.loadFile(path.join(__dirname, "src", "renderer", "index.html"));
 
   mainWindow.on("close", (event) => {
     const config = loadConfig();
@@ -267,7 +260,6 @@ function startServices(): void {
     }
   });
   connectionAuth.on("connection-auto-accepted", (request) => {
-    // Optional: show a subtle notification that connection was auto-accepted
     if (mainWindow) {
       mainWindow.webContents.send("connection-auto-accepted", request);
     }
@@ -284,7 +276,6 @@ function startServices(): void {
   });
   transferServer.on("transfer-complete", (info) => {
     if (mainWindow) mainWindow.webContents.send("transfer-complete", info);
-    // Show system notification (debounced)
     scheduleNotification(info);
   });
 
@@ -312,528 +303,23 @@ function startServices(): void {
   // Web Receiver
   webReceiver = new WebReceiver(transferServer);
   webReceiver.start();
+
+  // Register IPC handlers
+  registerDeviceHandlers(discovery);
+  registerTransferHandlers(() => mainWindow, discovery, connectionAuth);
+  registerConnectionHandlers(connectionAuth);
+  registerClipboardHandlers(discovery, connectionAuth, clipboardSync);
+  registerSettingsHandlers(() => mainWindow, loadConfig, saveConfig, connectionAuth);
+  registerWebHandlers(
+    () => ({ webEnabled, webPassword }),
+    (settings) => {
+      webEnabled = settings.webEnabled;
+      webPassword = settings.webPassword;
+    },
+    webReceiver
+  );
+  registerWindowHandlers(() => mainWindow);
 }
-
-// ---- IPC Handlers ----
-
-ipcMain.handle("get-devices", () => {
-  const includeSelf = !app.isPackaged;
-  return discovery ? discovery.getDeviceList(includeSelf) : [];
-});
-
-ipcMain.handle("get-device-info", () => {
-  return {
-    name: getDeviceName(),
-    ip: getLocalIP(),
-    id: discovery ? discovery.deviceId : "",
-    webUrl: `http://${getLocalIP()}:${WEB_PORT}`,
-  };
-});
-
-ipcMain.handle("select-files", async () => {
-  const result = await dialog.showOpenDialog(mainWindow!, {
-    properties: ["openFile", "multiSelections"],
-  });
-  return result.filePaths;
-});
-
-ipcMain.handle("select-folder", async () => {
-  const result = await dialog.showOpenDialog(mainWindow!, {
-    properties: ["openDirectory"],
-  });
-  return result.filePaths[0] ?? null;
-});
-
-// ---- Connection Authorization ----
-
-ipcMain.handle(
-  "request-connection",
-  async (_event, { deviceIp, deviceId }: { deviceIp: string; deviceId: string }) => {
-    try {
-      if (!connectionAuth) throw new Error("连接授权服务未启动");
-      const approved = await connectionAuth.requestConnection(deviceIp, deviceId);
-      return { approved };
-    } catch (e) {
-      const error = e as Error;
-      console.error("Connection request error:", error.message);
-      return { approved: false, error: error.message };
-    }
-  }
-);
-
-ipcMain.handle("approve-connection", (_event, requestId: string) => {
-  connectionAuth?.approveRequest(requestId);
-  return { success: true };
-});
-
-ipcMain.handle("reject-connection", (_event, requestId: string) => {
-  connectionAuth?.rejectRequest(requestId);
-  return { success: true };
-});
-
-// ---- Send Operations ----
-
-ipcMain.handle(
-  "send-files",
-  async (
-    _event,
-    {
-      deviceIp,
-      devicePort,
-      filePaths,
-    }: { deviceIp: string; devicePort: number; filePaths: string[] }
-  ) => {
-    const fromName = getDeviceName();
-    try {
-      // Find device by IP to check authorization
-      const devices = discovery?.getDeviceList(true) || [];
-      const targetDevice = devices.find((d) => d.ip === deviceIp);
-
-      if (targetDevice && connectionAuth && !connectionAuth.isAuthorized(targetDevice.id)) {
-        return { success: false, error: "未授权连接，请先请求连接" };
-      }
-
-      for (const filePath of filePaths) {
-        const stat = fs.statSync(filePath);
-        if (stat.isDirectory()) {
-          // Dropped folder — delegate to sendFolder
-          await sendFolder(deviceIp, devicePort, filePath, fromName);
-        } else {
-          await sendFile(deviceIp, devicePort, filePath, fromName);
-        }
-      }
-      return { success: true };
-    } catch (e) {
-      return { success: false, error: (e as Error).message };
-    }
-  }
-);
-
-ipcMain.handle(
-  "send-folder",
-  async (
-    _event,
-    {
-      deviceIp,
-      devicePort,
-      folderPath,
-    }: { deviceIp: string; devicePort: number; folderPath: string }
-  ) => {
-    const fromName = getDeviceName();
-    try {
-      // Find device by IP to check authorization
-      const devices = discovery?.getDeviceList(true) || [];
-      const targetDevice = devices.find((d) => d.ip === deviceIp);
-
-      if (targetDevice && connectionAuth && !connectionAuth.isAuthorized(targetDevice.id)) {
-        return { success: false, error: "未授权连接，请先请求连接" };
-      }
-
-      await sendFolder(deviceIp, devicePort, folderPath, fromName);
-      return { success: true };
-    } catch (e) {
-      return { success: false, error: (e as Error).message };
-    }
-  }
-);
-
-ipcMain.handle(
-  "send-text",
-  async (
-    _event,
-    { deviceIp, devicePort, text }: { deviceIp: string; devicePort: number; text: string }
-  ) => {
-    const fromName = getDeviceName();
-    try {
-      // Find device by IP to check authorization
-      const devices = discovery?.getDeviceList(true) || [];
-      const targetDevice = devices.find((d) => d.ip === deviceIp);
-
-      if (targetDevice && connectionAuth && !connectionAuth.isAuthorized(targetDevice.id)) {
-        return { success: false, error: "未授权连接，请先请求连接" };
-      }
-
-      await sendText(deviceIp, devicePort, text, fromName);
-      return { success: true };
-    } catch (e) {
-      return { success: false, error: (e as Error).message };
-    }
-  }
-);
-
-ipcMain.handle(
-  "send-clipboard",
-  async (
-    _event,
-    data: {
-      webMode?: boolean;
-      baseUrl?: string;
-      deviceIp?: string;
-      devicePort?: number;
-    }
-  ) => {
-    const fromName = getDeviceName();
-    try {
-      const text = clipboard.readText();
-      const img = clipboard.readImage();
-
-      // Web receiver mode: only text clipboard supported
-      if (data.webMode && data.baseUrl) {
-        if (text) {
-          await httpPost(`${data.baseUrl}/text`, text, {
-            "Content-Type": "text/plain; charset=utf-8",
-          });
-          return { success: true };
-        }
-        return {
-          success: false,
-          error: "剪贴板为空或内容为图片，浏览器接收端仅支持文本",
-        };
-      }
-
-      const { deviceIp, devicePort } = data as {
-        deviceIp: string;
-        devicePort: number;
-      };
-
-      // Find device by IP to check authorization
-      const devices = discovery?.getDeviceList(true) || [];
-      const targetDevice = devices.find((d) => d.ip === deviceIp);
-
-      if (targetDevice && connectionAuth && !connectionAuth.isAuthorized(targetDevice.id)) {
-        return { success: false, error: "未授权连接，请先请求连接" };
-      }
-
-      if (!img.isEmpty()) {
-        await sendClipboardData(
-          deviceIp,
-          devicePort,
-          { type: "image", imageBuffer: img.toPNG() },
-          fromName
-        );
-      } else if (text) {
-        await sendClipboardData(deviceIp, devicePort, { type: "text", text }, fromName);
-      } else {
-        return { success: false, error: "Clipboard is empty" };
-      }
-
-      return { success: true };
-    } catch (e) {
-      return { success: false, error: (e as Error).message };
-    }
-  }
-);
-
-ipcMain.handle(
-  "toggle-clipboard-sync",
-  (
-    _event,
-    {
-      enabled,
-      deviceId,
-      deviceIp,
-      wsPort,
-    }: {
-      enabled: boolean;
-      deviceId?: string;
-      deviceIp?: string;
-      wsPort?: number;
-    }
-  ) => {
-    if (!clipboardSync) return { success: false };
-    if (enabled && deviceId && deviceIp && wsPort !== undefined) {
-      clipboardSync.setEnabled(true, getDeviceName());
-      clipboardSync.connectToPeer(deviceIp, wsPort, deviceId);
-    } else {
-      if (deviceId) clipboardSync.disconnectPeer(deviceId);
-      if (clipboardSync.connectedPeers.size === 0) {
-        clipboardSync.setEnabled(false);
-      }
-    }
-    return { success: true };
-  }
-);
-
-ipcMain.handle("open-save-dir", () => {
-  shell.openPath(getSaveDir());
-});
-
-ipcMain.handle("get-save-dir", () => {
-  return getSaveDir();
-});
-
-ipcMain.handle("select-save-dir", async () => {
-  const result = await dialog.showOpenDialog(mainWindow!, {
-    properties: ["openDirectory", "createDirectory"],
-    title: "选择下载目录",
-  });
-  return result.filePaths[0] ?? null;
-});
-
-ipcMain.handle("set-save-dir", (_event, dir: string) => {
-  try {
-    setSaveDir(dir);
-    // Save to config file
-    const config = loadConfig();
-    config.saveDir = dir;
-    saveConfig(config);
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: (e as Error).message };
-  }
-});
-
-ipcMain.handle("get-window-frame-setting", () => {
-  const config = loadConfig();
-  return config.useNativeFrame ?? false;
-});
-
-ipcMain.handle("set-window-frame-setting", (_event, useNativeFrame: boolean) => {
-  try {
-    const config = loadConfig();
-    config.useNativeFrame = useNativeFrame;
-    saveConfig(config);
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: (e as Error).message };
-  }
-});
-
-ipcMain.handle("get-auto-accept-setting", () => {
-  const config = loadConfig();
-  return config.autoAcceptConnections ?? false;
-});
-
-ipcMain.handle("set-auto-accept-setting", (_event, enabled: boolean) => {
-  try {
-    const config = loadConfig();
-    config.autoAcceptConnections = enabled;
-    saveConfig(config);
-
-    // Update runtime setting
-    if (connectionAuth) {
-      connectionAuth.setAutoAccept(enabled);
-    }
-
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: (e as Error).message };
-  }
-});
-
-ipcMain.handle("get-theme-setting", () => {
-  const config = loadConfig();
-  return config.theme ?? "dark";
-});
-
-ipcMain.handle("set-theme-setting", (_event, theme: "dark" | "light") => {
-  try {
-    const config = loadConfig();
-    config.theme = theme;
-    saveConfig(config);
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: (e as Error).message };
-  }
-});
-
-ipcMain.handle("open-path", (_e, p: string) => {
-  if (fs.existsSync(p)) {
-    shell.showItemInFolder(p);
-    return true;
-  }
-  return false;
-});
-
-ipcMain.handle("delete-file", async (_e, p: string) => {
-  try {
-    if (fs.existsSync(p)) {
-      await fs.promises.unlink(p);
-      return { success: true };
-    }
-    return { success: false, error: "File not found" };
-  } catch (e) {
-    return { success: false, error: (e as Error).message };
-  }
-});
-
-ipcMain.handle("delete-folder", async (_e, p: string) => {
-  try {
-    if (fs.existsSync(p)) {
-      await fs.promises.rm(p, { recursive: true, force: true });
-      return { success: true };
-    }
-    return { success: false, error: "Folder not found" };
-  } catch (e) {
-    return { success: false, error: (e as Error).message };
-  }
-});
-
-// Helper: HTTP POST to web receiver
-function httpPost(
-  url: string,
-  body: Buffer | string,
-  headers: Record<string, string>
-): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const parsed = new URL(url);
-    const mod = parsed.protocol === "https:" ? https : http;
-    const bodyBuf = typeof body === "string" ? Buffer.from(body, "utf8") : body;
-    const req = mod.request(
-      {
-        hostname: parsed.hostname,
-        port: parsed.port,
-        path: parsed.pathname,
-        method: "POST",
-        headers: { "Content-Length": bodyBuf.length, ...headers },
-      },
-      (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => resolve(data));
-      }
-    );
-    req.on("error", reject);
-    req.write(bodyBuf);
-    req.end();
-  });
-}
-
-ipcMain.handle(
-  "upload-file-to-web",
-  async (_e, { baseUrl, filePath }: { baseUrl: string; filePath: string }) => {
-    try {
-      const stat = fs.statSync(filePath);
-      if (stat.isDirectory()) {
-        // Dropped folder — use folder upload logic
-        const folderName = path.basename(filePath);
-        const allFiles = collectAllFiles(filePath);
-        let successCount = 0,
-          failedCount = 0;
-        for (const fp of allFiles) {
-          try {
-            const relativePath = path.relative(filePath, fp).replace(/\\/g, "/");
-            const fStat = fs.statSync(fp);
-            const fileBuffer = fs.readFileSync(fp);
-            await httpPost(`${baseUrl}/upload`, fileBuffer, {
-              "Content-Type": "application/octet-stream",
-              "X-Filename": encodeURIComponent(path.basename(fp)),
-              "X-Filesize": String(fStat.size),
-              "X-Relative-Path": encodeURIComponent(relativePath),
-              "X-Folder-Name": encodeURIComponent(folderName),
-            });
-            successCount++;
-          } catch {
-            failedCount++;
-          }
-        }
-        return { success: failedCount === 0, count: successCount };
-      }
-      const fileName = path.basename(filePath);
-      const fileBuffer = fs.readFileSync(filePath);
-      await httpPost(`${baseUrl}/upload`, fileBuffer, {
-        "Content-Type": "application/octet-stream",
-        "X-Filename": encodeURIComponent(fileName),
-        "X-Filesize": String(stat.size),
-      });
-      return { success: true, count: 1 };
-    } catch (e) {
-      return { success: false, error: (e as Error).message };
-    }
-  }
-);
-
-function collectAllFiles(dirPath: string): string[] {
-  const files: string[] = [];
-  try {
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-    for (const entry of entries) {
-      const full = path.join(dirPath, entry.name);
-      if (entry.isDirectory()) files.push(...collectAllFiles(full));
-      else files.push(full);
-    }
-  } catch {}
-  return files;
-}
-
-ipcMain.handle(
-  "upload-folder-to-web",
-  async (_e, { baseUrl, folderPath }: { baseUrl: string; folderPath: string }) => {
-    const folderName = path.basename(folderPath);
-    const allFiles = collectAllFiles(folderPath);
-    let successCount = 0,
-      failedCount = 0;
-    for (const filePath of allFiles) {
-      try {
-        const relativePath = path.relative(folderPath, filePath).replace(/\\/g, "/");
-        const stat = fs.statSync(filePath);
-        const fileBuffer = fs.readFileSync(filePath);
-        await httpPost(`${baseUrl}/upload`, fileBuffer, {
-          "Content-Type": "application/octet-stream",
-          "X-Filename": encodeURIComponent(path.basename(filePath)),
-          "X-Filesize": String(stat.size),
-          "X-Relative-Path": encodeURIComponent(relativePath),
-          "X-Folder-Name": encodeURIComponent(folderName),
-        });
-        successCount++;
-      } catch {
-        failedCount++;
-      }
-    }
-    return {
-      success: failedCount === 0,
-      successCount,
-      failedCount,
-      totalCount: allFiles.length,
-    };
-  }
-);
-
-ipcMain.handle(
-  "upload-text-to-web",
-  async (_e, { baseUrl, text }: { baseUrl: string; text: string }) => {
-    try {
-      await httpPost(`${baseUrl}/text`, text, {
-        "Content-Type": "text/plain; charset=utf-8",
-      });
-      return { success: true };
-    } catch (e) {
-      return { success: false, error: (e as Error).message };
-    }
-  }
-);
-
-ipcMain.handle("get-web-settings", () => {
-  return { webEnabled, webPassword };
-});
-
-ipcMain.handle(
-  "set-web-settings",
-  (_event, settings: { webEnabled: boolean; webPassword: string }) => {
-    webEnabled = settings.webEnabled;
-    webPassword = settings.webPassword;
-    if (webReceiver) {
-      webReceiver.setEnabled(webEnabled);
-      webReceiver.setPassword(webPassword);
-    }
-    return { success: true };
-  }
-);
-
-ipcMain.handle("window-minimize", () => {
-  mainWindow?.minimize();
-});
-ipcMain.handle("window-maximize", () => {
-  if (mainWindow?.isMaximized()) mainWindow.unmaximize();
-  else mainWindow?.maximize();
-});
-ipcMain.handle("window-close", () => {
-  mainWindow?.close();
-});
-ipcMain.handle("restart-app", () => {
-  app.relaunch();
-  app.exit(0);
-});
 
 // ---- App Lifecycle ----
 
