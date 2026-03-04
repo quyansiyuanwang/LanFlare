@@ -1,11 +1,11 @@
-import { ipcMain } from "electron";
+import { ipcMain, app } from "electron";
 import { Discovery } from "../discovery";
 import { getDeviceName, getLocalIP } from "../utils";
 import { WEB_PORT } from "../web-receiver";
 
 export function registerDeviceHandlers(discovery: Discovery) {
   ipcMain.handle("get-devices", () => {
-    const includeSelf = !require("electron").app.isPackaged;
+    const includeSelf = !app.isPackaged;
     return discovery.getDeviceList(includeSelf);
   });
 

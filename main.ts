@@ -1,12 +1,4 @@
-import {
-  app,
-  BrowserWindow,
-  Notification,
-  shell,
-  Tray,
-  Menu,
-  nativeImage,
-} from "electron";
+import { app, BrowserWindow, Notification, shell, Tray, Menu, nativeImage } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import { Discovery } from "./src/main/discovery";

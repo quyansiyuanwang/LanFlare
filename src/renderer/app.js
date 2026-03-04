@@ -1,5 +1,11 @@
 import { initWebSettings, initSettings } from "./modules/settings.js";
-import { initDeviceInfo, initTabs, refreshDevices, initWebTarget, listenDeviceEvents } from "./modules/devices.js";
+import {
+  initDeviceInfo,
+  initTabs,
+  refreshDevices,
+  initWebTarget,
+  listenDeviceEvents,
+} from "./modules/devices.js";
 import { initActions, initTextModal, initDropZone } from "./modules/transfers.js";
 import { renderClipboardDevices, listenClipboardEvents } from "./modules/clipboard.js";
 import { renderReceiveHistory, listenTransferEvents } from "./modules/receive.js";

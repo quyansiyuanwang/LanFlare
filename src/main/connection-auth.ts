@@ -238,7 +238,7 @@ export class ConnectionAuth extends EventEmitter {
   }
 
   // Handle connection response (from remote device)
-  private _handleConnectionResponse(msg: AuthMessage): void {
+  private _handleConnectionResponse(_msg: AuthMessage): void {
     // This is handled in the requestConnection promise
   }
 
