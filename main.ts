@@ -202,7 +202,12 @@ function createWindow(): void {
       process.platform === "win32" ? "icon.ico" : "icon.png"
     ),
   });
-  mainWindow.loadFile(path.join(__dirname, "src", "renderer", "index.html"));
+
+  // Load HTML file (use optimized version in production)
+  const htmlFile = app.isPackaged
+    ? path.join(__dirname, "..", "dist", "renderer", "index.min.html")
+    : path.join(__dirname, "..", "src", "renderer", "index.html");
+  mainWindow.loadFile(htmlFile);
 
   mainWindow.on("close", (event) => {
     const config = loadConfig();

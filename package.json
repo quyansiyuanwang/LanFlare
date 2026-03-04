@@ -5,6 +5,7 @@
   "author": "LanFlare <quyansiyuanwang@qq.com>",
   "main": "dist/main.js",
   "scripts": {
+    "postinstall": "node scripts/fix-permissions.js",
     "tsc": "tsc",
     "tsc:check": "tsc --noEmit",
     "lint": "eslint . --fix --ext .ts --cache",
@@ -13,37 +14,72 @@
     "format:check": "prettier --check .",
     "precommit": "npm run tsc && npm run lint && npm run format",
     "copyassets": "node -e \"const fs=require('fs');fs.mkdirSync('dist/src/assets',{recursive:true});fs.copyFileSync('src/assets/web-receiver.html','dist/src/assets/web-receiver.html');\"",
-    "start": "tsc && npm run copyassets && electron .",
-    "dev": "tsc && npm run copyassets && electron .",
-    "build": "tsc && npm run copyassets && electron-builder",
-    "build:win": "tsc && npm run copyassets && electron-builder --win",
-    "build:mac": "tsc && npm run copyassets && electron-builder --mac",
-    "build:linux": "tsc && npm run copyassets && electron-builder --linux",
-    "build:all": "tsc && npm run copyassets && electron-builder --win --linux --mac"
+    "precommit": "npm run lint && npm run format && npm run tsc",
+    "optimize": "node scripts/optimize.js",
+    "optimize-web": "node scripts/optimize-web-receiver.js",
+    "remove-console": "node scripts/remove-console.js",
+    "prebuild-optimize": "node scripts/prebuild-optimize.js",
+    "prebuild": "npm run tsc && npm run copyassets",
+    "start": "npm run prebuild && electron .",
+    "dev": "npm run prebuild && electron .",
+    "build": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder",
+    "build:win": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --win",
+    "build:mac": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --mac",
+    "build:linux": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --linux",
+    "build:all": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --win --linux --mac",
+    "clean": "node -e \"const fs=require('fs');['dist','release'].forEach(d=>{if(fs.existsSync(d))fs.rmSync(d,{recursive:true,force:true})})\"",
+    "analyze": "node scripts/analyze.js",
+    "analyze:detailed": "node scripts/analyze-detailed.js"
   },
   "build": {
     "appId": "com.lanflare.app",
     "productName": "LanFlare",
     "directories": {
-      "output": "dist"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
       "dist/main.js",
       "dist/src/**/*",
-      "src/renderer/**/*",
-      "node_modules/**/*"
+      "dist/renderer/**/*",
+      "src/renderer/app.js",
+      {
+        "from": "node_modules/ws",
+        "to": "node_modules/ws",
+        "filter": [
+          "**/*",
+          "!**/*.md",
+          "!**/LICENSE",
+          "!**/test/**",
+          "!**/*.map"
+        ]
+      }
     ],
+    "asarUnpack": [
+      "dist/src/assets/**/*"
+    ],
+    "compression": "maximum",
+    "removePackageScripts": true,
+    "asar": true,
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
+    "nodeGypRebuild": false,
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
     },
     "mac": {
       "target": [
         {
-          "target": "dir",
+          "target": "dmg",
           "arch": [
             "arm64",
             "x64"
@@ -52,7 +88,8 @@
       ],
       "icon": "build/icon.icns",
       "category": "public.app-category.utilities",
-      "identity": null
+      "identity": null,
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
     },
     "dmg": {
       "sign": false
@@ -63,18 +100,32 @@
         "deb",
         "rpm"
       ],
-      "icon": "build/icon.png",
+      "icon": "build/icons",
       "category": "Utility",
-      "artifactName": "${productName}-${version}-Linux-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+      "desktop": {
+        "Name": "LanFlare",
+        "Comment": "LAN file transfer & shared clipboard app",
+        "Icon": "lanflare",
+        "StartupWMClass": "LanFlare",
+        "Categories": "Utility;Network;FileTransfer;"
+      },
+      "executableName": "lanflare",
+      "maintainer": "LanFlare <quyansiyuanwang@qq.com>"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "artifactName": "${productName}-${version}-Windows-${arch}-Setup.${ext}"
+      "deleteAppDataOnUninstall": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "createStartMenuShortcut": true,
+      "shortcutName": "LanFlare"
     },
     "portable": {
-      "artifactName": "${productName}-${version}-Windows-${arch}-Portable.${ext}"
+      "artifactName": "${productName}-${version}-${os}-${arch}-Portable.${ext}"
     }
   },
   "devDependencies": {

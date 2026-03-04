@@ -123,6 +123,11 @@ export class ClipboardSync extends EventEmitter {
     ws.on("open", () => {
       this.connectedPeers.set(deviceId, ws);
       this.emit("peer-connected", deviceId);
+
+      // Memory optimization: start polling when first peer connects
+      if (this.enabled && this.connectedPeers.size === 1 && !this.pollTimer) {
+        this.pollTimer = setInterval(() => this._pollClipboard(), POLL_INTERVAL);
+      }
     });
 
     ws.on("message", (data) => {
@@ -187,6 +192,12 @@ export class ClipboardSync extends EventEmitter {
     if (ws) {
       ws.close();
       this.connectedPeers.delete(deviceId);
+
+      // Memory optimization: stop polling when no peers connected
+      if (this.connectedPeers.size === 0 && this.pollTimer) {
+        clearInterval(this.pollTimer);
+        this.pollTimer = null;
+      }
     }
   }
 
@@ -194,14 +205,17 @@ export class ClipboardSync extends EventEmitter {
     this.enabled = enabled;
     if (deviceName) this.deviceName = deviceName;
 
-    if (enabled && !this.pollTimer) {
+    // Memory optimization: only poll when enabled AND has connections
+    const shouldPoll = enabled && this.connectedPeers.size > 0;
+
+    if (shouldPoll && !this.pollTimer) {
       this.lastClipText = clipboard.readText() || "";
       const img = clipboard.readImage();
       this.lastImageHash = img.isEmpty() ? "" : this._getImageHash(img);
       this.lastFilePaths = "";
       this.lastFolderPath = "";
       this.pollTimer = setInterval(() => this._pollClipboard(), POLL_INTERVAL);
-    } else if (!enabled && this.pollTimer) {
+    } else if (!shouldPoll && this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }

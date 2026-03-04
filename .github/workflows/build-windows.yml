@@ -29,20 +29,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Pre-build optimization
+        run: npm run prebuild-optimize
+
       - name: Build (Windows)
         run: npm run build:win -- --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: List dist
-        run: Get-ChildItem -Path dist -Recurse -File | Select-Object FullName, Length
+      - name: List release
+        run: Get-ChildItem -Path release -Recurse -File | Select-Object FullName, Length
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-windows
           path: |
-            dist/*.exe
-            dist/*.msi
+            release/*.exe
+            release/*.msi
           if-no-files-found: warn
           retention-days: 7

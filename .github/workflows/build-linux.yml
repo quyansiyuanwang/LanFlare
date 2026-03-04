@@ -29,34 +29,105 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Fix app-builder permissions (detailed)
+        run: |
+          echo "=== Fixing app-builder permissions ==="
+
+          # List app-builder files before fix
+          echo "App-builder files before fix:"
+          find node_modules -name "app-builder" -type f 2>/dev/null || echo "No app-builder found"
+
+          # Fix all app-builder binaries
+          find node_modules -name "app-builder" -type f -exec chmod +x {} \; 2>/dev/null || true
+          find node_modules -path "*/app-builder-bin/linux/*" -type f -exec chmod +x {} \; 2>/dev/null || true
+
+          # Verify permissions
+          echo ""
+          echo "Permissions after fix:"
+          find node_modules -name "app-builder" -type f -exec ls -la {} \; 2>/dev/null || echo "No app-builder found"
+
+          # Test execution
+          echo ""
+          echo "Testing app-builder execution:"
+          if [ -f "node_modules/app-builder-bin/linux/x64/app-builder" ]; then
+            echo "Testing x64 app-builder:"
+            node_modules/app-builder-bin/linux/x64/app-builder --version || echo "Failed to execute x64 app-builder"
+          fi
+
+          echo "=== Permission fix complete ==="
+
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y rpm libarchive-tools
+          sudo apt-get install -y rpm libarchive-tools fuse libfuse2
+
+      - name: Diagnose app-builder issue
+        run: |
+          echo "=== Diagnosing app-builder ==="
+
+          APP_BUILDER="node_modules/app-builder-bin/linux/x64/app-builder"
+
+          if [ -f "$APP_BUILDER" ]; then
+            echo "✓ app-builder exists"
+
+            echo ""
+            echo "File type:"
+            file "$APP_BUILDER"
+
+            echo ""
+            echo "Permissions:"
+            ls -la "$APP_BUILDER"
+
+            echo ""
+            echo "Library dependencies:"
+            ldd "$APP_BUILDER" || true
+
+            echo ""
+            echo "Attempting to execute:"
+            "$APP_BUILDER" --version 2>&1 || echo "Execution failed with exit code: $?"
+
+            echo ""
+            echo "Checking for missing libraries:"
+            ldd "$APP_BUILDER" 2>&1 | grep "not found" || echo "All libraries found"
+          else
+            echo "✗ app-builder not found"
+          fi
+
+          echo "=== Diagnostic complete ==="
+
+      - name: Pre-build optimization
+        run: npm run prebuild-optimize
+
+      - name: Fix app-builder permissions before build
+        run: |
+          echo "=== Final permission fix before build ==="
+          find node_modules -name "app-builder" -type f -exec chmod +x {} \; 2>/dev/null || true
+          find node_modules -path "*/app-builder-bin/linux/*" -type f -exec chmod +x {} \; 2>/dev/null || true
+          echo "=== Done ==="
 
       - name: Build (Linux x64)
         run: npm run build:linux -- --x64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: List dist
-        run: ls -lh dist/
+      - name: List release
+        run: ls -lh release/
 
       - name: Upload Linux x64 artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-linux-x64
           path: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
+            release/*.tar.gz
           if-no-files-found: warn
           retention-days: 7
 
   build-linux-arm64:
     name: Build · Linux (arm64)
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,29 +141,98 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Fix app-builder permissions (detailed)
+        run: |
+          echo "=== Fixing app-builder permissions ==="
+
+          # List app-builder files before fix
+          echo "App-builder files before fix:"
+          find node_modules -name "app-builder" -type f 2>/dev/null || echo "No app-builder found"
+
+          # Fix all app-builder binaries
+          find node_modules -name "app-builder" -type f -exec chmod +x {} \; 2>/dev/null || true
+          find node_modules -path "*/app-builder-bin/linux/*" -type f -exec chmod +x {} \; 2>/dev/null || true
+
+          # Verify permissions
+          echo ""
+          echo "Permissions after fix:"
+          find node_modules -name "app-builder" -type f -exec ls -la {} \; 2>/dev/null || echo "No app-builder found"
+
+          # Test execution
+          echo ""
+          echo "Testing app-builder execution:"
+          if [ -f "node_modules/app-builder-bin/linux/x64/app-builder" ]; then
+            echo "Testing x64 app-builder:"
+            node_modules/app-builder-bin/linux/x64/app-builder --version || echo "Failed to execute x64 app-builder"
+          fi
+
+          echo "=== Permission fix complete ==="
+
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y rpm libarchive-tools ruby ruby-dev build-essential
-          sudo gem install fpm --no-document
+          sudo apt-get install -y rpm libarchive-tools fuse libfuse2
 
-      - name: Build (Linux arm64)
+      - name: Diagnose app-builder issue
+        run: |
+          echo "=== Diagnosing app-builder ==="
+
+          APP_BUILDER="node_modules/app-builder-bin/linux/x64/app-builder"
+
+          if [ -f "$APP_BUILDER" ]; then
+            echo "✓ app-builder exists"
+
+            echo ""
+            echo "File type:"
+            file "$APP_BUILDER"
+
+            echo ""
+            echo "Permissions:"
+            ls -la "$APP_BUILDER"
+
+            echo ""
+            echo "Library dependencies:"
+            ldd "$APP_BUILDER" || true
+
+            echo ""
+            echo "Attempting to execute:"
+            "$APP_BUILDER" --version 2>&1 || echo "Execution failed with exit code: $?"
+
+            echo ""
+            echo "Checking for missing libraries:"
+            ldd "$APP_BUILDER" 2>&1 | grep "not found" || echo "All libraries found"
+          else
+            echo "✗ app-builder not found"
+          fi
+
+          echo "=== Diagnostic complete ==="
+
+      - name: Pre-build optimization
+        run: npm run prebuild-optimize
+
+      - name: Fix app-builder permissions before build
+        run: |
+          echo "=== Final permission fix before build ==="
+          find node_modules -name "app-builder" -type f -exec chmod +x {} \; 2>/dev/null || true
+          find node_modules -path "*/app-builder-bin/linux/*" -type f -exec chmod +x {} \; 2>/dev/null || true
+          echo "=== Done ==="
+
+      - name: Build (Linux arm64) - Cross compile from x64
         run: npm run build:linux -- --arm64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          USE_SYSTEM_FPM: true
 
-      - name: List dist
-        run: ls -lh dist/
+      - name: List release
+        run: ls -lh release/
 
       - name: Upload Linux arm64 artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-linux-arm64
           path: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
+            release/*.tar.gz
           if-no-files-found: warn
           retention-days: 7
