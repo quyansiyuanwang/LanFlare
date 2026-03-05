@@ -11,36 +11,66 @@ import "./assets/theme-override.css";
 // Customize Element Plus theme variables for dark mode
 const setDarkTheme = () => {
   const root = document.documentElement;
+
+  // Background colors
   root.style.setProperty("--el-bg-color", "#0a0a0a");
   root.style.setProperty("--el-bg-color-page", "#0a0a0a");
   root.style.setProperty("--el-bg-color-overlay", "#1a1a1a");
+
+  // Fill colors
   root.style.setProperty("--el-fill-color", "#1a1a1a");
   root.style.setProperty("--el-fill-color-light", "#222222");
   root.style.setProperty("--el-fill-color-lighter", "#2a2a2a");
   root.style.setProperty("--el-fill-color-extra-light", "#333333");
+  root.style.setProperty("--el-fill-color-blank", "transparent");
+  root.style.setProperty("--el-fill-color-dark", "#0a0a0a");
+
+  // Border colors
   root.style.setProperty("--el-border-color", "rgba(255, 255, 255, 0.08)");
   root.style.setProperty("--el-border-color-light", "rgba(255, 255, 255, 0.06)");
   root.style.setProperty("--el-border-color-lighter", "rgba(255, 255, 255, 0.04)");
   root.style.setProperty("--el-border-color-extra-light", "rgba(255, 255, 255, 0.02)");
+  root.style.setProperty("--el-border-color-dark", "rgba(255, 255, 255, 0.1)");
+  root.style.setProperty("--el-border-color-darker", "rgba(255, 255, 255, 0.12)");
+
+  // Text colors
   root.style.setProperty("--el-text-color-primary", "#ffffff");
   root.style.setProperty("--el-text-color-regular", "#a0a0a0");
   root.style.setProperty("--el-text-color-secondary", "#666666");
   root.style.setProperty("--el-text-color-placeholder", "#666666");
+  root.style.setProperty("--el-text-color-disabled", "#444444");
 
-  // Override primary color to white/gray
+  // Primary color - WHITE/GRAY for dark mode
   root.style.setProperty("--el-color-primary", "#ffffff");
-  root.style.setProperty("--el-color-primary-light-3", "#333333");
-  root.style.setProperty("--el-color-primary-light-5", "#444444");
-  root.style.setProperty("--el-color-primary-light-7", "#555555");
-  root.style.setProperty("--el-color-primary-light-8", "#666666");
-  root.style.setProperty("--el-color-primary-light-9", "#777777");
+  root.style.setProperty("--el-color-primary-light-3", "#e6e6e6");
+  root.style.setProperty("--el-color-primary-light-5", "#cccccc");
+  root.style.setProperty("--el-color-primary-light-7", "#b3b3b3");
+  root.style.setProperty("--el-color-primary-light-8", "#999999");
+  root.style.setProperty("--el-color-primary-light-9", "#808080");
   root.style.setProperty("--el-color-primary-dark-2", "#cccccc");
 
+  // Disable all blue colors
+  root.style.setProperty("--el-color-info", "#666666");
+  root.style.setProperty("--el-color-info-light-3", "#777777");
+  root.style.setProperty("--el-color-info-light-5", "#888888");
+  root.style.setProperty("--el-color-info-light-7", "#999999");
+  root.style.setProperty("--el-color-info-light-8", "#aaaaaa");
+  root.style.setProperty("--el-color-info-light-9", "#bbbbbb");
+  root.style.setProperty("--el-color-info-dark-2", "#555555");
+
+  // Keep success and error colors
   root.style.setProperty("--el-color-success", "#00cc66");
+  root.style.setProperty("--el-color-warning", "#ff9900");
+  root.style.setProperty("--el-color-danger", "#ff3366");
   root.style.setProperty("--el-color-error", "#ff3366");
+
+  // Border radius
   root.style.setProperty("--el-border-radius-base", "6px");
   root.style.setProperty("--el-border-radius-small", "4px");
   root.style.setProperty("--el-border-radius-round", "8px");
+  root.style.setProperty("--el-border-radius-circle", "100%");
+
+  // Transitions
   root.style.setProperty("--el-transition-duration", "0.15s");
   root.style.setProperty("--el-transition-duration-fast", "0.1s");
 };
@@ -48,36 +78,66 @@ const setDarkTheme = () => {
 // Customize Element Plus theme variables for light mode
 const setLightTheme = () => {
   const root = document.documentElement;
+
+  // Background colors
   root.style.setProperty("--el-bg-color", "#ffffff");
   root.style.setProperty("--el-bg-color-page", "#fafafa");
   root.style.setProperty("--el-bg-color-overlay", "#ffffff");
+
+  // Fill colors
   root.style.setProperty("--el-fill-color", "#f5f5f5");
   root.style.setProperty("--el-fill-color-light", "#eeeeee");
   root.style.setProperty("--el-fill-color-lighter", "#e8e8e8");
   root.style.setProperty("--el-fill-color-extra-light", "#e0e0e0");
+  root.style.setProperty("--el-fill-color-blank", "transparent");
+  root.style.setProperty("--el-fill-color-dark", "#f0f0f0");
+
+  // Border colors
   root.style.setProperty("--el-border-color", "rgba(0, 0, 0, 0.08)");
   root.style.setProperty("--el-border-color-light", "rgba(0, 0, 0, 0.06)");
   root.style.setProperty("--el-border-color-lighter", "rgba(0, 0, 0, 0.04)");
   root.style.setProperty("--el-border-color-extra-light", "rgba(0, 0, 0, 0.02)");
+  root.style.setProperty("--el-border-color-dark", "rgba(0, 0, 0, 0.1)");
+  root.style.setProperty("--el-border-color-darker", "rgba(0, 0, 0, 0.12)");
+
+  // Text colors
   root.style.setProperty("--el-text-color-primary", "#0a0a0a");
   root.style.setProperty("--el-text-color-regular", "#666666");
   root.style.setProperty("--el-text-color-secondary", "#999999");
   root.style.setProperty("--el-text-color-placeholder", "#999999");
+  root.style.setProperty("--el-text-color-disabled", "#cccccc");
 
-  // Override primary color to black/gray
+  // Primary color - BLACK/GRAY for light mode
   root.style.setProperty("--el-color-primary", "#0a0a0a");
-  root.style.setProperty("--el-color-primary-light-3", "#cccccc");
-  root.style.setProperty("--el-color-primary-light-5", "#dddddd");
-  root.style.setProperty("--el-color-primary-light-7", "#eeeeee");
-  root.style.setProperty("--el-color-primary-light-8", "#f5f5f5");
-  root.style.setProperty("--el-color-primary-light-9", "#fafafa");
-  root.style.setProperty("--el-color-primary-dark-2", "#333333");
+  root.style.setProperty("--el-color-primary-light-3", "#333333");
+  root.style.setProperty("--el-color-primary-light-5", "#666666");
+  root.style.setProperty("--el-color-primary-light-7", "#999999");
+  root.style.setProperty("--el-color-primary-light-8", "#cccccc");
+  root.style.setProperty("--el-color-primary-light-9", "#e6e6e6");
+  root.style.setProperty("--el-color-primary-dark-2", "#000000");
 
+  // Disable all blue colors
+  root.style.setProperty("--el-color-info", "#999999");
+  root.style.setProperty("--el-color-info-light-3", "#aaaaaa");
+  root.style.setProperty("--el-color-info-light-5", "#bbbbbb");
+  root.style.setProperty("--el-color-info-light-7", "#cccccc");
+  root.style.setProperty("--el-color-info-light-8", "#dddddd");
+  root.style.setProperty("--el-color-info-light-9", "#eeeeee");
+  root.style.setProperty("--el-color-info-dark-2", "#888888");
+
+  // Keep success and error colors
   root.style.setProperty("--el-color-success", "#00cc66");
+  root.style.setProperty("--el-color-warning", "#ff9900");
+  root.style.setProperty("--el-color-danger", "#ff3366");
   root.style.setProperty("--el-color-error", "#ff3366");
+
+  // Border radius
   root.style.setProperty("--el-border-radius-base", "6px");
   root.style.setProperty("--el-border-radius-small", "4px");
   root.style.setProperty("--el-border-radius-round", "8px");
+  root.style.setProperty("--el-border-radius-circle", "100%");
+
+  // Transitions
   root.style.setProperty("--el-transition-duration", "0.15s");
   root.style.setProperty("--el-transition-duration-fast", "0.1s");
 };

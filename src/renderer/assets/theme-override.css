@@ -1,5 +1,10 @@
 /* Force monochrome theme - override Element Plus defaults */
 
+/* Remove ALL blue colors globally */
+* {
+  --el-color-primary: var(--el-text-color-primary) !important;
+}
+
 /* Tabs - remove blue background */
 .el-tabs__active-bar {
   background-color: var(--el-text-color-primary) !important;
@@ -21,8 +26,15 @@
   background-color: var(--el-bg-color) !important;
 }
 
+.el-tabs__nav-wrap::after {
+  background-color: var(--el-border-color) !important;
+}
+
 /* Buttons */
 .el-button--primary {
+  --el-button-bg-color: var(--el-text-color-primary) !important;
+  --el-button-border-color: var(--el-text-color-primary) !important;
+  --el-button-text-color: var(--el-bg-color) !important;
   background-color: var(--el-text-color-primary) !important;
   border-color: var(--el-text-color-primary) !important;
   color: var(--el-bg-color) !important;
@@ -30,12 +42,20 @@
 
 .el-button--primary:hover,
 .el-button--primary:focus {
+  --el-button-hover-bg-color: var(--el-text-color-regular) !important;
+  --el-button-hover-border-color: var(--el-text-color-regular) !important;
   background-color: var(--el-text-color-regular) !important;
   border-color: var(--el-text-color-regular) !important;
 }
 
+.el-button--primary:active {
+  background-color: var(--el-text-color-secondary) !important;
+  border-color: var(--el-text-color-secondary) !important;
+}
+
 /* Links */
 .el-button.is-link {
+  --el-button-text-color: var(--el-text-color-primary) !important;
   color: var(--el-text-color-primary) !important;
 }
 
@@ -45,6 +65,8 @@
 
 /* Alerts */
 .el-alert--info {
+  --el-alert-bg-color: var(--el-fill-color) !important;
+  --el-alert-border-color: var(--el-border-color) !important;
   background-color: var(--el-fill-color) !important;
   border-color: var(--el-border-color) !important;
 }
@@ -53,8 +75,13 @@
   color: var(--el-text-color-primary) !important;
 }
 
+.el-alert__close-btn {
+  color: var(--el-text-color-regular) !important;
+}
+
 /* Badges */
 .el-badge__content {
+  --el-badge-bg-color: var(--el-text-color-primary) !important;
   background-color: var(--el-text-color-primary) !important;
   border-color: var(--el-text-color-primary) !important;
   color: var(--el-bg-color) !important;
@@ -65,29 +92,48 @@
   background-color: var(--el-text-color-primary) !important;
 }
 
+.el-progress__text {
+  color: var(--el-text-color-primary) !important;
+}
+
 /* Input focus */
 .el-input__wrapper.is-focus {
+  --el-input-focus-border-color: var(--el-text-color-primary) !important;
   box-shadow: 0 0 0 1px var(--el-text-color-primary) inset !important;
 }
 
 .el-textarea__inner:focus {
+  --el-input-focus-border-color: var(--el-text-color-primary) !important;
   border-color: var(--el-text-color-primary) !important;
 }
 
 /* Checkbox */
 .el-checkbox__input.is-checked .el-checkbox__inner {
+  --el-checkbox-checked-bg-color: var(--el-text-color-primary) !important;
+  --el-checkbox-checked-border-color: var(--el-text-color-primary) !important;
   background-color: var(--el-text-color-primary) !important;
   border-color: var(--el-text-color-primary) !important;
+}
+
+.el-checkbox__input.is-checked + .el-checkbox__label {
+  color: var(--el-text-color-primary) !important;
 }
 
 /* Radio */
 .el-radio__input.is-checked .el-radio__inner {
+  --el-radio-checked-bg-color: var(--el-text-color-primary) !important;
+  --el-radio-checked-border-color: var(--el-text-color-primary) !important;
   background-color: var(--el-text-color-primary) !important;
   border-color: var(--el-text-color-primary) !important;
 }
 
+.el-radio__input.is-checked + .el-radio__label {
+  color: var(--el-text-color-primary) !important;
+}
+
 /* Switch */
 .el-switch.is-checked .el-switch__core {
+  --el-switch-on-color: var(--el-text-color-primary) !important;
   background-color: var(--el-text-color-primary) !important;
   border-color: var(--el-text-color-primary) !important;
 }
@@ -98,7 +144,95 @@
   font-weight: 600;
 }
 
+.el-select-dropdown__item.is-hovering {
+  background-color: var(--el-fill-color) !important;
+}
+
 /* Loading */
 .el-loading-spinner .path {
   stroke: var(--el-text-color-primary) !important;
+}
+
+.el-loading-spinner .el-loading-text {
+  color: var(--el-text-color-primary) !important;
+}
+
+/* Card */
+.el-card {
+  --el-card-border-color: var(--el-border-color) !important;
+  border-color: var(--el-border-color) !important;
+}
+
+/* Scrollbar */
+.el-scrollbar__thumb {
+  background-color: var(--el-text-color-secondary) !important;
+}
+
+/* Message */
+.el-message--info {
+  --el-message-bg-color: var(--el-fill-color) !important;
+  --el-message-border-color: var(--el-border-color) !important;
+}
+
+.el-message--info .el-message__icon {
+  color: var(--el-text-color-primary) !important;
+}
+
+/* Notification */
+.el-notification {
+  border-color: var(--el-border-color) !important;
+}
+
+/* Tooltip */
+.el-tooltip__popper {
+  background-color: var(--el-fill-color-dark) !important;
+  border-color: var(--el-border-color) !important;
+}
+
+/* Popover */
+.el-popover {
+  border-color: var(--el-border-color) !important;
+}
+
+/* Dialog */
+.el-dialog {
+  border-color: var(--el-border-color) !important;
+}
+
+.el-dialog__header {
+  border-bottom-color: var(--el-border-color) !important;
+}
+
+/* Drawer */
+.el-drawer {
+  border-color: var(--el-border-color) !important;
+}
+
+/* Menu */
+.el-menu-item.is-active {
+  color: var(--el-text-color-primary) !important;
+  background-color: var(--el-fill-color) !important;
+}
+
+/* Pagination */
+.el-pagination .el-pager li.is-active {
+  color: var(--el-text-color-primary) !important;
+  background-color: var(--el-fill-color) !important;
+}
+
+/* Tag */
+.el-tag--primary {
+  --el-tag-bg-color: var(--el-fill-color) !important;
+  --el-tag-border-color: var(--el-border-color) !important;
+  --el-tag-text-color: var(--el-text-color-primary) !important;
+}
+
+/* Link */
+.el-link--primary {
+  --el-link-text-color: var(--el-text-color-primary) !important;
+  color: var(--el-text-color-primary) !important;
+}
+
+.el-link--primary:hover {
+  color: var(--el-text-color-regular) !important;
 }
