@@ -87,10 +87,7 @@ interface Window {
       baseUrl: string;
       text: string;
     }) => Promise<{ success: boolean; error?: string }>;
-    uploadFolderToWeb: (data: {
-      baseUrl: string;
-      folderPath: string;
-    }) => Promise<{
+    uploadFolderToWeb: (data: { baseUrl: string; folderPath: string }) => Promise<{
       success: boolean;
       error?: string;
       successCount?: number;

@@ -14,12 +14,7 @@
       <div class="devices-section">
         <el-empty v-if="devices.length === 0" description="未发现设备" :image-size="80" />
         <div v-else class="devices-list">
-          <el-card
-            v-for="device in devices"
-            :key="device.id"
-            class="device-card"
-            shadow="hover"
-          >
+          <el-card v-for="device in devices" :key="device.id" class="device-card" shadow="hover">
             <div class="device-content">
               <div class="device-icon">{{ getPlatformEmoji(device.platform) }}</div>
               <div class="device-info">

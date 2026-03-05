@@ -445,7 +445,12 @@ export function sendClipboardData(
   fromName: string
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    console.log("sendClipboardData called with:", { targetIp, targetPort, type: clipData.type, fromName });
+    console.log("sendClipboardData called with:", {
+      targetIp,
+      targetPort,
+      type: clipData.type,
+      fromName,
+    });
 
     // Validate parameters
     if (!targetIp || !targetPort) {

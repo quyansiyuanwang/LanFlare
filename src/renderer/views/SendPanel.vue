@@ -26,11 +26,7 @@
           <span>浏览器接收地址</span>
         </div>
       </template>
-      <el-input
-        v-model="webTargetUrl"
-        placeholder="输入其他设备的浏览器接收地址"
-        clearable
-      >
+      <el-input v-model="webTargetUrl" placeholder="输入其他设备的浏览器接收地址" clearable>
         <template #append>
           <el-button @click="connectWebTarget" type="primary">连接</el-button>
         </template>
@@ -87,12 +83,7 @@
 
     <!-- Text Dialog -->
     <el-dialog v-model="textDialogVisible" title="发送文本" width="500px">
-      <el-input
-        v-model="textInput"
-        type="textarea"
-        :rows="8"
-        placeholder="输入要发送的文本..."
-      />
+      <el-input v-model="textInput" type="textarea" :rows="8" placeholder="输入要发送的文本..." />
       <template #footer>
         <el-button @click="textDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="sendText">发送</el-button>

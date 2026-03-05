@@ -1,6 +1,6 @@
 <template>
   <el-config-provider :locale="zhCn">
-    <div id="app" :class="{ 'dark': theme === 'dark' }">
+    <div id="app" :class="{ dark: theme === 'dark' }">
       <!-- Custom Titlebar -->
       <div class="titlebar">
         <div class="titlebar-drag">
@@ -81,7 +81,15 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { ElConfigProvider, ElMessage } from "element-plus";
 import zhCn from "element-plus/dist/locale/zh-cn.mjs";
-import { Minus, FullScreen, Close, Upload, Download, DocumentCopy, Setting } from "@element-plus/icons-vue";
+import {
+  Minus,
+  FullScreen,
+  Close,
+  Upload,
+  Download,
+  DocumentCopy,
+  Setting,
+} from "@element-plus/icons-vue";
 import { useAppStore } from "./stores/app";
 import Sidebar from "./components/Sidebar.vue";
 import ConnectionRequestModal from "./components/ConnectionRequestModal.vue";
