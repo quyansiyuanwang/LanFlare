@@ -11,15 +11,26 @@
     "lint:check": "eslint . --ext .ts --cache",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "precommit": "npm run tsc && npm run lint && npm run format",
+    "precommit": "npm run lint && npm run format && npm run tsc",
     "copyassets": "node -e \"const fs=require('fs');fs.mkdirSync('dist/src/assets',{recursive:true});fs.copyFileSync('src/assets/web-receiver.html','dist/src/assets/web-receiver.html');\"",
-    "start": "tsc && npm run copyassets && electron .",
-    "dev": "tsc && npm run copyassets && electron .",
-    "build": "tsc && npm run copyassets && electron-builder",
-    "build:win": "tsc && npm run copyassets && electron-builder --win",
-    "build:mac": "tsc && npm run copyassets && electron-builder --mac",
-    "build:linux": "tsc && npm run copyassets && electron-builder --linux",
-    "build:all": "tsc && npm run copyassets && electron-builder --win --linux --mac"
+    "vite:dev": "vite",
+    "vite:build": "vite build",
+    "electron:dev": "npm run tsc && npm run copyassets && electron .",
+    "dev": "concurrently \"npm run vite:dev\" \"wait-on http://localhost:5173 && npm run electron:dev\"",
+    "start": "npm run dev",
+    "optimize": "node scripts/optimize.js",
+    "optimize-web": "node scripts/optimize-web-receiver.js",
+    "remove-console": "node scripts/remove-console.js",
+    "prebuild-optimize": "node scripts/prebuild-optimize.js",
+    "prebuild": "npm run tsc && npm run copyassets && npm run vite:build",
+    "build": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder",
+    "build:win": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --win",
+    "build:mac": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --mac",
+    "build:linux": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --linux",
+    "build:all": "npm run prebuild && npm run optimize && npm run optimize-web && npm run remove-console && electron-builder --win --linux --mac",
+    "clean": "node -e \"const fs=require('fs');['dist','release'].forEach(d=>{if(fs.existsSync(d))fs.rmSync(d,{recursive:true,force:true})})\"",
+    "analyze": "node scripts/analyze.js",
+    "analyze:detailed": "node scripts/analyze-detailed.js"
   },
   "build": {
     "appId": "com.lanflare.app",
@@ -82,13 +93,22 @@
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "concurrently": "^9.2.1",
     "electron": "^28.0.0",
     "electron-builder": "^24.9.1",
+    "pinia": "^3.0.4",
     "prettier": "^3.8.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vue": "^3.5.29",
+    "vue-router": "^4.6.4",
+    "wait-on": "^9.0.4"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
+    "element-plus": "^2.13.3",
     "ws": "^8.16.0"
   }
 }

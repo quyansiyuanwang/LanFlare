@@ -2,6 +2,8 @@ node_modules/
 dist/
 .DS_Store
 *.log
+*.bak
+modules.bak/
 
 .eslintcache
 .claude/

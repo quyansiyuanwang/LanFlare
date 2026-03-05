@@ -232,7 +232,14 @@ export class TransferServer extends EventEmitter {
   }
 
   stop(): void {
-    if (this.server) this.server.close();
+    if (this.server) {
+      // Unref the server to allow process to exit
+      this.server.unref();
+      // Force close all connections
+      this.server.close(() => {
+        console.log("Transfer server closed");
+      });
+    }
     for (const pf of this.pendingFolders.values()) {
       clearTimeout(pf.timer);
     }
@@ -316,6 +323,14 @@ export function sendFile(
   fromName: string
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    console.log("sendFile called with:", { targetIp, targetPort, filePath, fromName });
+
+    // Validate parameters
+    if (!targetIp || !targetPort) {
+      reject(new Error(`Invalid connection parameters: ip=${targetIp}, port=${targetPort}`));
+      return;
+    }
+
     const stat = fs.statSync(filePath);
     const fileName = path.basename(filePath);
     const header = JSON.stringify({
@@ -325,7 +340,9 @@ export function sendFile(
       from: fromName,
     } satisfies TransferHeader);
 
-    const socket = net.createConnection(targetPort, targetIp, () => {
+    console.log("Creating connection to:", targetIp, targetPort);
+    const socket = net.createConnection({ port: targetPort, host: targetIp }, () => {
+      console.log("Connected, sending file:", fileName);
       socket.write(header + "\n\n");
       const readStream = fs.createReadStream(filePath);
       readStream.pipe(socket);
@@ -334,8 +351,14 @@ export function sendFile(
       });
     });
 
-    socket.on("close", () => resolve());
-    socket.on("error", reject);
+    socket.on("close", () => {
+      console.log("Connection closed");
+      resolve();
+    });
+    socket.on("error", (err) => {
+      console.error("Socket error:", err);
+      reject(err);
+    });
   });
 }
 
@@ -345,6 +368,13 @@ export async function sendFolder(
   folderPath: string,
   fromName: string
 ): Promise<void> {
+  console.log("sendFolder called with:", { targetIp, targetPort, folderPath, fromName });
+
+  // Validate parameters
+  if (!targetIp || !targetPort) {
+    throw new Error(`Invalid connection parameters: ip=${targetIp}, port=${targetPort}`);
+  }
+
   const folderName = path.basename(folderPath);
   const files = getAllFiles(folderPath);
 
@@ -363,7 +393,7 @@ export async function sendFolder(
         totalFiles: files.length,
       } satisfies TransferHeader);
 
-      const socket = net.createConnection(targetPort, targetIp, () => {
+      const socket = net.createConnection({ port: targetPort, host: targetIp }, () => {
         socket.write(header + "\n\n");
         const readStream = fs.createReadStream(filePath);
         readStream.pipe(socket);
@@ -383,13 +413,21 @@ export function sendText(
   fromName: string
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    console.log("sendText called with:", { targetIp, targetPort, fromName });
+
+    // Validate parameters
+    if (!targetIp || !targetPort) {
+      reject(new Error(`Invalid connection parameters: ip=${targetIp}, port=${targetPort}`));
+      return;
+    }
+
     const header = JSON.stringify({
       type: "text",
       from: fromName,
       fileSize: Buffer.byteLength(text),
     } satisfies TransferHeader);
 
-    const socket = net.createConnection(targetPort, targetIp, () => {
+    const socket = net.createConnection({ port: targetPort, host: targetIp }, () => {
       socket.write(header + "\n\n");
       socket.write(text);
       socket.end();
@@ -407,13 +445,21 @@ export function sendClipboardData(
   fromName: string
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    console.log("sendClipboardData called with:", { targetIp, targetPort, type: clipData.type, fromName });
+
+    // Validate parameters
+    if (!targetIp || !targetPort) {
+      reject(new Error(`Invalid connection parameters: ip=${targetIp}, port=${targetPort}`));
+      return;
+    }
+
     if (clipData.type === "text" && clipData.text !== undefined) {
       const header = JSON.stringify({
         type: "clipboard-text",
         from: fromName,
         fileSize: Buffer.byteLength(clipData.text),
       } satisfies TransferHeader);
-      const socket = net.createConnection(targetPort, targetIp, () => {
+      const socket = net.createConnection({ port: targetPort, host: targetIp }, () => {
         socket.write(header + "\n\n");
         socket.write(clipData.text!);
         socket.end();
@@ -427,7 +473,7 @@ export function sendClipboardData(
         fileSize: clipData.imageBuffer.length,
         from: fromName,
       } satisfies TransferHeader);
-      const socket = net.createConnection(targetPort, targetIp, () => {
+      const socket = net.createConnection({ port: targetPort, host: targetIp }, () => {
         socket.write(header + "\n\n");
         socket.write(clipData.imageBuffer!);
         socket.end();
