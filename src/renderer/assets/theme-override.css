@@ -1,6 +1,6 @@
 /* Force monochrome theme - override Element Plus defaults */
 
-/* Tabs */
+/* Tabs - remove blue background */
 .el-tabs__active-bar {
   background-color: var(--el-text-color-primary) !important;
 }
@@ -11,6 +11,14 @@
 
 .el-tabs__item:hover {
   color: var(--el-text-color-primary) !important;
+}
+
+.el-tabs__header {
+  background-color: var(--el-bg-color) !important;
+}
+
+.el-tabs__nav-wrap {
+  background-color: var(--el-bg-color) !important;
 }
 
 /* Buttons */
