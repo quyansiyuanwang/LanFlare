@@ -6,6 +6,7 @@ import "element-plus/theme-chalk/dark/css-vars.css";
 import App from "./App.vue";
 import router from "./router";
 import "./assets/styles.css";
+import "./assets/theme-override.css";
 
 // Customize Element Plus theme variables for dark mode
 const setDarkTheme = () => {
@@ -25,6 +26,8 @@ const setDarkTheme = () => {
   root.style.setProperty("--el-text-color-regular", "#a0a0a0");
   root.style.setProperty("--el-text-color-secondary", "#666666");
   root.style.setProperty("--el-text-color-placeholder", "#666666");
+
+  // Override primary color to white/gray
   root.style.setProperty("--el-color-primary", "#ffffff");
   root.style.setProperty("--el-color-primary-light-3", "#333333");
   root.style.setProperty("--el-color-primary-light-5", "#444444");
@@ -32,6 +35,7 @@ const setDarkTheme = () => {
   root.style.setProperty("--el-color-primary-light-8", "#666666");
   root.style.setProperty("--el-color-primary-light-9", "#777777");
   root.style.setProperty("--el-color-primary-dark-2", "#cccccc");
+
   root.style.setProperty("--el-color-success", "#00cc66");
   root.style.setProperty("--el-color-error", "#ff3366");
   root.style.setProperty("--el-border-radius-base", "6px");
@@ -39,6 +43,9 @@ const setDarkTheme = () => {
   root.style.setProperty("--el-border-radius-round", "8px");
   root.style.setProperty("--el-transition-duration", "0.15s");
   root.style.setProperty("--el-transition-duration-fast", "0.1s");
+
+  // Add dark class to html element
+  document.documentElement.classList.add("dark");
 };
 
 // Customize Element Plus theme variables for light mode
@@ -59,6 +66,8 @@ const setLightTheme = () => {
   root.style.setProperty("--el-text-color-regular", "#666666");
   root.style.setProperty("--el-text-color-secondary", "#999999");
   root.style.setProperty("--el-text-color-placeholder", "#999999");
+
+  // Override primary color to black/gray
   root.style.setProperty("--el-color-primary", "#0a0a0a");
   root.style.setProperty("--el-color-primary-light-3", "#cccccc");
   root.style.setProperty("--el-color-primary-light-5", "#dddddd");
@@ -66,6 +75,7 @@ const setLightTheme = () => {
   root.style.setProperty("--el-color-primary-light-8", "#f5f5f5");
   root.style.setProperty("--el-color-primary-light-9", "#fafafa");
   root.style.setProperty("--el-color-primary-dark-2", "#333333");
+
   root.style.setProperty("--el-color-success", "#00cc66");
   root.style.setProperty("--el-color-error", "#ff3366");
   root.style.setProperty("--el-border-radius-base", "6px");
@@ -73,6 +83,9 @@ const setLightTheme = () => {
   root.style.setProperty("--el-border-radius-round", "8px");
   root.style.setProperty("--el-transition-duration", "0.15s");
   root.style.setProperty("--el-transition-duration-fast", "0.1s");
+
+  // Remove dark class from html element
+  document.documentElement.classList.remove("dark");
 };
 
 // Apply initial theme (default to dark)

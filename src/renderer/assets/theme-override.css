@@ -1,0 +1,96 @@
+/* Force monochrome theme - override Element Plus defaults */
+
+/* Tabs */
+.el-tabs__active-bar {
+  background-color: var(--el-text-color-primary) !important;
+}
+
+.el-tabs__item.is-active {
+  color: var(--el-text-color-primary) !important;
+}
+
+.el-tabs__item:hover {
+  color: var(--el-text-color-primary) !important;
+}
+
+/* Buttons */
+.el-button--primary {
+  background-color: var(--el-text-color-primary) !important;
+  border-color: var(--el-text-color-primary) !important;
+  color: var(--el-bg-color) !important;
+}
+
+.el-button--primary:hover,
+.el-button--primary:focus {
+  background-color: var(--el-text-color-regular) !important;
+  border-color: var(--el-text-color-regular) !important;
+}
+
+/* Links */
+.el-button.is-link {
+  color: var(--el-text-color-primary) !important;
+}
+
+.el-button.is-link:hover {
+  color: var(--el-text-color-regular) !important;
+}
+
+/* Alerts */
+.el-alert--info {
+  background-color: var(--el-fill-color) !important;
+  border-color: var(--el-border-color) !important;
+}
+
+.el-alert--info .el-alert__icon {
+  color: var(--el-text-color-primary) !important;
+}
+
+/* Badges */
+.el-badge__content {
+  background-color: var(--el-text-color-primary) !important;
+  border-color: var(--el-text-color-primary) !important;
+  color: var(--el-bg-color) !important;
+}
+
+/* Progress */
+.el-progress-bar__inner {
+  background-color: var(--el-text-color-primary) !important;
+}
+
+/* Input focus */
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--el-text-color-primary) inset !important;
+}
+
+.el-textarea__inner:focus {
+  border-color: var(--el-text-color-primary) !important;
+}
+
+/* Checkbox */
+.el-checkbox__input.is-checked .el-checkbox__inner {
+  background-color: var(--el-text-color-primary) !important;
+  border-color: var(--el-text-color-primary) !important;
+}
+
+/* Radio */
+.el-radio__input.is-checked .el-radio__inner {
+  background-color: var(--el-text-color-primary) !important;
+  border-color: var(--el-text-color-primary) !important;
+}
+
+/* Switch */
+.el-switch.is-checked .el-switch__core {
+  background-color: var(--el-text-color-primary) !important;
+  border-color: var(--el-text-color-primary) !important;
+}
+
+/* Select dropdown */
+.el-select-dropdown__item.is-selected {
+  color: var(--el-text-color-primary) !important;
+  font-weight: 600;
+}
+
+/* Loading */
+.el-loading-spinner .path {
+  stroke: var(--el-text-color-primary) !important;
+}
