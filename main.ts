@@ -202,7 +202,14 @@ function createWindow(): void {
       process.platform === "win32" ? "icon.ico" : "icon.png"
     ),
   });
-  mainWindow.loadFile(path.join(__dirname, "src", "renderer", "index.html"));
+
+  // Load Vite dev server in development, built files in production
+  if (!app.isPackaged) {
+    mainWindow.loadURL("http://localhost:5173");
+    mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadFile(path.join(__dirname, "..", "dist", "renderer", "index.html"));
+  }
 
   mainWindow.on("close", (event) => {
     const config = loadConfig();
@@ -238,7 +245,19 @@ function startServices(): void {
   discovery.on("devices-changed", () => {
     if (mainWindow && discovery) {
       const includeSelf = !app.isPackaged;
-      mainWindow.webContents.send("devices-changed", discovery?.getDeviceList(includeSelf));
+      const devices = discovery.getDeviceList(includeSelf);
+
+      // Map device properties to match frontend expectations
+      const mappedDevices = devices.map((device) => ({
+        id: device.id,
+        name: device.name,
+        ip: device.ip,
+        platform: device.platform,
+        transferPort: device.tcpPort,
+        clipboardPort: device.wsPort,
+      }));
+
+      mainWindow.webContents.send("devices-changed", mappedDevices);
     }
   });
 
@@ -275,7 +294,9 @@ function startServices(): void {
   clipboardSync = new ClipboardSync();
   clipboardSync.startServer();
   clipboardSync.on("clipboard-received", (info) => {
-    if (mainWindow) mainWindow.webContents.send("clipboard-synced", info);
+    if (mainWindow) {
+      mainWindow.webContents.send("clipboard-synced", info);
+    }
   });
   clipboardSync.on("peer-connected", (deviceId) => {
     if (mainWindow)
@@ -323,6 +344,49 @@ app.whenReady().then(() => {
 
 app.on("before-quit", () => {
   isQuitting = true;
+
+  // Clear notification timer
+  if (notifTimer) {
+    clearTimeout(notifTimer);
+    notifTimer = null;
+  }
+
+  // Stop all services synchronously
+  console.log("Stopping all services...");
+
+  if (discovery) {
+    discovery.stop();
+    discovery = null;
+  }
+
+  if (transferServer) {
+    transferServer.stop();
+    transferServer = null;
+  }
+
+  if (clipboardSync) {
+    clipboardSync.stop();
+    clipboardSync = null;
+  }
+
+  if (connectionAuth) {
+    connectionAuth.stop();
+    connectionAuth = null;
+  }
+
+  if (webReceiver) {
+    webReceiver.stop();
+    webReceiver = null;
+  }
+
+  console.log("All services stopped");
+});
+
+app.on("will-quit", () => {
+  console.log("App will quit, forcing cleanup...");
+
+  // Immediately force exit - services already stopped in before-quit
+  process.exit(0);
 });
 
 app.on("window-all-closed", () => {
@@ -330,11 +394,7 @@ app.on("window-all-closed", () => {
   const minimizeToTray = config.minimizeToTray ?? false;
 
   if (!minimizeToTray || process.platform !== "darwin") {
-    if (discovery) discovery.stop();
-    if (transferServer) transferServer.stop();
-    if (clipboardSync) clipboardSync.stop();
-    if (connectionAuth) connectionAuth.stop();
-    if (webReceiver) webReceiver.stop();
+    // Services already stopped in before-quit
     app.quit();
   }
 });

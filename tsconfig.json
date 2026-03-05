@@ -13,6 +13,6 @@
     "declaration": true,
     "declarationDir": "./dist"
   },
-  "include": ["main.ts", "src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "renderer"]
+  "include": ["main.ts", "src/main/**/*.ts", "src/preload/**/*.ts"],
+  "exclude": ["node_modules", "dist", "renderer", "scripts", "src/renderer"]
 }

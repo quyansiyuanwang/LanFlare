@@ -27,10 +27,16 @@ contextBridge.exposeInMainWorld("api", {
 
   // Clipboard sync
   toggleClipboardSync: (data: unknown) => ipcRenderer.invoke("toggle-clipboard-sync", data),
-  onClipboardSynced: (cb: (info: unknown) => void) =>
-    ipcRenderer.on("clipboard-synced", (_, info) => cb(info)),
-  onClipboardPeerStatus: (cb: (info: unknown) => void) =>
-    ipcRenderer.on("clipboard-peer-status", (_, info) => cb(info)),
+  onClipboardSynced: (cb: (info: unknown) => void) => {
+    const listener = (_: unknown, info: unknown) => cb(info);
+    ipcRenderer.on("clipboard-synced", listener);
+    return () => ipcRenderer.removeListener("clipboard-synced", listener);
+  },
+  onClipboardPeerStatus: (cb: (info: unknown) => void) => {
+    const listener = (_: unknown, info: unknown) => cb(info);
+    ipcRenderer.on("clipboard-peer-status", listener);
+    return () => ipcRenderer.removeListener("clipboard-peer-status", listener);
+  },
 
   // Connection authorization
   requestConnection: (deviceIp: string, deviceId: string) =>
