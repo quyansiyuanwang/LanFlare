@@ -43,9 +43,6 @@ const setDarkTheme = () => {
   root.style.setProperty("--el-border-radius-round", "8px");
   root.style.setProperty("--el-transition-duration", "0.15s");
   root.style.setProperty("--el-transition-duration-fast", "0.1s");
-
-  // Add dark class to html element
-  document.documentElement.classList.add("dark");
 };
 
 // Customize Element Plus theme variables for light mode
@@ -83,24 +80,27 @@ const setLightTheme = () => {
   root.style.setProperty("--el-border-radius-round", "8px");
   root.style.setProperty("--el-transition-duration", "0.15s");
   root.style.setProperty("--el-transition-duration-fast", "0.1s");
-
-  // Remove dark class from html element
-  document.documentElement.classList.remove("dark");
 };
 
 // Apply initial theme (default to dark)
+document.documentElement.classList.add("dark");
 setDarkTheme();
 
 // Watch for theme changes
+let isUpdating = false;
 const observer = new MutationObserver((mutations) => {
+  if (isUpdating) return;
+
   mutations.forEach((mutation) => {
     if (mutation.attributeName === "class") {
+      isUpdating = true;
       const isDark = document.documentElement.classList.contains("dark");
       if (isDark) {
         setDarkTheme();
       } else {
         setLightTheme();
       }
+      isUpdating = false;
     }
   });
 });
