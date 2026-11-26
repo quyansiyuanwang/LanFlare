@@ -346,7 +346,9 @@ export class WebReceiver {
                 const s = fs.statSync(f);
                 totalSize += s.size;
                 if (s.mtimeMs > maxMtime) maxMtime = s.mtimeMs;
-              } catch {}
+              } catch (err) {
+                console.error("Error reading file stats:", err);
+              }
             }
             folders.push({
               name: entry.name,
@@ -355,7 +357,9 @@ export class WebReceiver {
               mtime: maxMtime,
             });
           }
-        } catch {}
+        } catch (err) {
+          console.error("Error processing directory entry:", err);
+        }
       }
       files.sort((a, b) => b.mtime - a.mtime);
       folders.sort((a, b) => b.mtime - a.mtime);
@@ -420,7 +424,9 @@ export class WebReceiver {
         if (entry.isDirectory()) files.push(...this._getAllFiles(fullPath));
         else if (entry.isFile()) files.push(fullPath);
       }
-    } catch {}
+    } catch (err) {
+      console.error("Error reading directory:", err);
+    }
     return files;
   }
 
@@ -458,9 +464,15 @@ export class WebReceiver {
   }
 
   stop(): void {
+    console.log("Stopping web receiver...");
     if (this.server) {
-      this.server.close();
+      // Unref the server to allow process to exit
+      this.server.unref();
+      this.server.close(() => {
+        console.log("Web receiver server closed");
+      });
       this.server = null;
     }
+    this.sessions.clear();
   }
 }

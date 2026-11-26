@@ -43,7 +43,9 @@ function collectAllFiles(dirPath: string): string[] {
       if (entry.isDirectory()) files.push(...collectAllFiles(full));
       else files.push(full);
     }
-  } catch {}
+  } catch (err) {
+    console.error("Error collecting files:", err);
+  }
   return files;
 }
 

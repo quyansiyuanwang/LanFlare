@@ -139,8 +139,23 @@ export class Discovery extends EventEmitter {
   }
 
   stop(): void {
-    if (this.broadcastTimer) clearInterval(this.broadcastTimer);
-    if (this.cleanupTimer) clearInterval(this.cleanupTimer);
-    if (this.socket) this.socket.close();
+    console.log("Stopping discovery...");
+    if (this.broadcastTimer) {
+      clearInterval(this.broadcastTimer);
+      this.broadcastTimer = null;
+    }
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
+    if (this.socket) {
+      try {
+        this.socket.close();
+      } catch (e) {
+        console.error("Error closing discovery socket:", e);
+      }
+      this.socket = null;
+    }
+    this.devices.clear();
   }
 }

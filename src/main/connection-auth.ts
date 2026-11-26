@@ -39,6 +39,8 @@ export class ConnectionAuth extends EventEmitter {
   private pendingRequests: Map<string, PendingRequest>; // requestId -> request info
   private outgoingRequestSockets: Map<string, WebSocket>; // requestId -> socket
   private autoAcceptEnabled: boolean;
+  private cleanupInterval: NodeJS.Timeout | null;
+  private socketToRequestId: WeakMap<WebSocket, string>;
 
   constructor(deviceId: string, autoAcceptEnabled = false) {
     super();
@@ -48,6 +50,8 @@ export class ConnectionAuth extends EventEmitter {
     this.pendingRequests = new Map();
     this.outgoingRequestSockets = new Map();
     this.autoAcceptEnabled = autoAcceptEnabled;
+    this.cleanupInterval = null;
+    this.socketToRequestId = new WeakMap();
   }
 
   setAutoAccept(enabled: boolean): void {
@@ -86,7 +90,7 @@ export class ConnectionAuth extends EventEmitter {
     console.log(`Connection auth server listening on port ${AUTH_PORT}`);
 
     // Cleanup expired authorizations every minute
-    setInterval(() => {
+    this.cleanupInterval = setInterval(() => {
       const now = Date.now();
       for (const [deviceId, expireTime] of this.authorizedConnections.entries()) {
         if (now > expireTime) {
@@ -225,7 +229,7 @@ export class ConnectionAuth extends EventEmitter {
     this.pendingRequests.set(requestId, pendingRequest);
 
     // Store socket for later response
-    (socket as any).__requestId = requestId;
+    this.socketToRequestId.set(socket, requestId);
 
     // Emit event for UI to show approval dialog
     this.emit("connection-request", {
@@ -266,7 +270,10 @@ export class ConnectionAuth extends EventEmitter {
     // Find the socket with this requestId
     if (this.server) {
       this.server.clients.forEach((client) => {
-        if ((client as any).__requestId === requestId && client.readyState === WebSocket.OPEN) {
+        if (
+          this.socketToRequestId.get(client) === requestId &&
+          client.readyState === WebSocket.OPEN
+        ) {
           client.send(JSON.stringify(response));
         }
       });
@@ -296,7 +303,10 @@ export class ConnectionAuth extends EventEmitter {
     // Find the socket with this requestId
     if (this.server) {
       this.server.clients.forEach((client) => {
-        if ((client as any).__requestId === requestId && client.readyState === WebSocket.OPEN) {
+        if (
+          this.socketToRequestId.get(client) === requestId &&
+          client.readyState === WebSocket.OPEN
+        ) {
           client.send(JSON.stringify(response));
         }
       });
@@ -325,8 +335,27 @@ export class ConnectionAuth extends EventEmitter {
   }
 
   stop(): void {
+    console.log("Stopping connection auth...");
+
+    // Clear cleanup interval
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+
     if (this.server) {
-      this.server.close();
+      // Close all client connections first
+      this.server.clients.forEach((client) => {
+        try {
+          client.close();
+        } catch (e) {
+          console.error("Error closing client:", e);
+        }
+      });
+      // Then close the server
+      this.server.close(() => {
+        console.log("Connection auth server closed");
+      });
       this.server = null;
     }
 
@@ -338,7 +367,11 @@ export class ConnectionAuth extends EventEmitter {
 
     // Close all outgoing sockets
     for (const socket of this.outgoingRequestSockets.values()) {
-      socket.close();
+      try {
+        socket.close();
+      } catch (e) {
+        console.error("Error closing outgoing socket:", e);
+      }
     }
     this.outgoingRequestSockets.clear();
   }

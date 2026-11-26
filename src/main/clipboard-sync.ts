@@ -389,11 +389,32 @@ export class ClipboardSync extends EventEmitter {
   }
 
   stop(): void {
-    if (this.pollTimer) clearInterval(this.pollTimer);
+    console.log("Stopping clipboard sync...");
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
     for (const [, ws] of this.connectedPeers) {
-      ws.close();
+      try {
+        ws.close();
+      } catch (e) {
+        console.error("Error closing peer connection:", e);
+      }
     }
     this.connectedPeers.clear();
-    if (this.wsServer) this.wsServer.close();
+    if (this.wsServer) {
+      // Close all client connections first
+      this.wsServer.clients.forEach((client) => {
+        try {
+          client.close();
+        } catch (e) {
+          console.error("Error closing client:", e);
+        }
+      });
+      // Then close the server
+      this.wsServer.close(() => {
+        console.log("Clipboard sync server closed");
+      });
+    }
   }
 }
