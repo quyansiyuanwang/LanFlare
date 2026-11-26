@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=LanFlare
+Comment=LAN file transfer & shared clipboard app
+Exec=lanflare %U
+Terminal=false
+Type=Application
+Icon=lanflare
+StartupWMClass=LanFlare
+Categories=Utility;Network;FileTransfer;
+MimeType=x-scheme-handler/lanflare;

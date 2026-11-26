@@ -38,7 +38,7 @@
         "nsis",
         "portable"
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icons/icon.ico"
     },
     "mac": {
       "target": [
@@ -50,7 +50,7 @@
           ]
         }
       ],
-      "icon": "build/icon.icns",
+      "icon": "build/icons/icon.icns",
       "category": "public.app-category.utilities",
       "identity": null
     },
@@ -59,13 +59,40 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb",
-        "rpm"
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
-      "icon": "build/icon.png",
+      "icon": "build/icons",
       "category": "Utility",
-      "artifactName": "${productName}-${version}-Linux-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-Linux-${arch}.${ext}",
+      "desktop": {
+        "Name": "LanFlare",
+        "Comment": "LAN file transfer & shared clipboard app",
+        "Icon": "lanflare",
+        "StartupWMClass": "LanFlare",
+        "Categories": "Utility;Network;FileTransfer;"
+      },
+      "executableName": "lanflare",
+      "maintainer": "LanFlare <quyansiyuanwang@qq.com>"
     },
     "nsis": {
       "oneClick": false,
